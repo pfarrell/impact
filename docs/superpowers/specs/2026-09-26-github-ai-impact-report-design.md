@@ -169,6 +169,45 @@ ai_impact/
 
 ## Future phases (not this build)
 
+### Phase 2 direction: private-activity proxy (individuals/orgs)
+
+GitHub's contribution graph counts private-repo commits as anonymous
+squares toward a profile's public total contribution count by default —
+so `(total contributions, from the GitHub GraphQL API)` minus `(public
+events, already in this pipeline's GH Archive data)` gives a per-user
+private-activity gap, without ever seeing what's in the private repo.
+This is the one differentiation angle that could speak to activity
+hidden in private repos, which the rest of this report structurally
+cannot see.
+
+Key design points for when this phase is picked up:
+
+- **Sampling, not census**: only queryable one profile at a time via the
+  GitHub GraphQL API (rate-limited, roughly one call per year per
+  profile), so this means a deliberately drawn sample of actor logins
+  already seen in the GH Archive pipeline — favoring "survivor" users
+  active across the full 2015–present window so the gap trend is
+  comparable over time — not full-population coverage.
+- **Metric**: per sampled user, per year — public events (already
+  computed in this pipeline) vs. total contributions (pulled via API).
+  The gap, aggregated across the sample and tracked over time, is the
+  private-activity proxy; the question is whether it grows after late
+  2022.
+- **Optional curated case studies**: a small hand-picked list (config
+  file, same pattern as the milestone/keyword lists) of specific known
+  individuals or orgs, for narrative color, separate from the
+  statistical sample.
+- **Caveats that must be stated prominently wherever this is charted**:
+  it's a proxy, not a census; some users disable private-contribution
+  visibility entirely, which only ever causes the gap to understate
+  private activity, never overstate it; sample size and selection
+  method must be disclosed alongside any chart using it.
+- Would need its own script (separate from the BigQuery pipeline, since
+  it hits the GitHub API directly), its own config file for the sample
+  list, and its own chart/section in the report.
+
+### Other corroborating sources
+
 Considered as corroborating sources for a later pass, once the core
 GitHub-based report is built and reviewed:
 
