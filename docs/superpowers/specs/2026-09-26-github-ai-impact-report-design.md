@@ -105,14 +105,30 @@ mechanism.
 ### Supporting cuts
 
 - **Language mix**: monthly commit/push share by the top ~15 languages
-  (by `github_repos` declared language), to show compositional shifts
-  (e.g. Python's share) over the same timeline.
-- **AI/ML & framework cut**: repos matched by name/description/topics
-  against a maintained keyword list in `config/ai_ml_keywords.yaml`
-  (e.g. pytorch, tensorflow, transformers/huggingface, langchain, openai,
-  llama, jax, scikit-learn, ollama, plus coding-assistant tools like
-  copilot, cursor). Tracked as its own volume and share-of-total trend,
-  separate from the general language cut.
+  (by `github_repos.languages` declared language), to show compositional
+  shifts (e.g. Python's share) over the same timeline. **Known
+  limitation:** `bigquery-public-data.github_repos` is a largely static
+  snapshot, not a live-updated dataset — its repo coverage was captured
+  at a point in time and was never kept current for repos created since.
+  This means language-mix coverage degrades for more recent years (repos
+  created after the snapshot won't match and fall into an "Unknown"
+  bucket). The report must state this explicitly wherever the language
+  chart appears; treat recent-year language shares as directionally
+  weaker than earlier years, not invalidated.
+- **AI/ML & framework cut**: repos matched by **`repo.name` matched
+  directly against GH Archive event data** (not via the `github_repos`
+  snapshot) against a maintained keyword list in
+  `config/ai_ml_keywords.yaml` (e.g. pytorch, tensorflow,
+  transformers/huggingface, langchain, openai, llama, jax, scikit-learn,
+  ollama, plus coding-assistant tools like copilot, cursor). Matching on
+  `repo.name` (present on every event, regardless of snapshot age) keeps
+  this cut fully current and avoids the staleness problem above — this
+  is exactly the metric that most needs to see repos created after
+  ~2022, which the static snapshot would otherwise miss entirely.
+  Tracked as its own volume and share-of-total trend, separate from the
+  general language cut. Matching repo name substrings is a heuristic
+  (e.g. misses repos with no keyword in the name) — the report should
+  note this as an approximate, name-based signal.
 
 ## Repository structure
 
