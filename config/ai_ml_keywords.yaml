@@ -1,0 +1,23 @@
+# Matched (case-insensitive substring) against repo.name for the AI/ML
+# & framework cut. Extend this list as new frameworks/tools emerge --
+# it's read fresh on every backfill/refresh run.
+keywords:
+  - pytorch
+  - tensorflow
+  - keras
+  - scikit-learn
+  - jax
+  - huggingface
+  - transformers
+  - langchain
+  - llama
+  - openai
+  - anthropic
+  - claude
+  - gpt
+  - llm
+  - copilot
+  - cursor-ai
+  - ollama
+  - stable-diffusion
+  - diffusers

@@ -1,0 +1,41 @@
+# Reference points for annotating charts of GitHub activity over time.
+# These are NOT derived from queried BigQuery data -- they are external,
+# independently-published dates/figures used only as chart annotations
+# (e.g. vertical reference lines) to give AI-adoption context.
+#
+# Dates verified via WebSearch on 2026-09-26; see task-2-report.md for the
+# specific queries and sources used.
+
+llm_milestones:
+  - date: "2021-06"
+    label: "GitHub Copilot (technical preview)"
+    # Announced 2021-06-29. Sources: GitHub Blog "Introducing GitHub
+    # Copilot: your AI pair programmer"; TechCrunch, June 29, 2021.
+  - date: "2022-06"
+    label: "GitHub Copilot GA"
+    # Announced 2022-06-21. Sources: GitHub Blog "GitHub Copilot is
+    # generally available to all developers"; TechCrunch, June 21, 2022.
+  - date: "2022-11"
+    label: "ChatGPT released"
+    # Public release 2022-11-30. Source: OpenAI announcement, widely
+    # corroborated (e.g. HISTORY.com "ChatGPT is released to the public").
+  - date: "2023-03"
+    label: "GPT-4 released"
+    # Released 2023-03-14. Source: OpenAI announcement; TechCrunch,
+    # "OpenAI releases GPT-4, a multimodal AI...", March 14, 2023.
+
+github_user_milestones:
+  # GitHub's own published headline figures. Reference points only --
+  # NOT derived from queried data. Each entry must cite its source.
+  - date: "2018-11"
+    users_millions: 31
+    source: "GitHub blog, November 2018 - \"Thank you for 100 million repositories\" (github.blog/news-insights/company-news/100m-repos/): 31 million developers had created 100 million repositories."
+  - date: "2020-12"
+    users_millions: 56
+    source: "GitHub State of the Octoverse 2020 report, published December 2, 2020 (octoverse.github.com/2020): 56 million developers on GitHub."
+  - date: "2023-01"
+    users_millions: 100
+    source: "GitHub blog, January 25, 2023 - \"100 million developers and counting\" (github.blog/news-insights/company-news/100-million-developers-and-counting/)."
+  - date: "2025-10"
+    users_millions: 180
+    source: "GitHub Blog, Octoverse 2025 report (published late October 2025) - \"Octoverse: A new developer joins GitHub every second as AI leads TypeScript to #1\": 180 million-plus developers on GitHub."
