@@ -167,6 +167,29 @@ ai_impact/
 - A static/narrative write-up may follow once the data's findings are
   clear, but is explicitly not part of this build.
 
+## Future phases (not this build)
+
+Considered as corroborating sources for a later pass, once the core
+GitHub-based report is built and reviewed:
+
+- **PyPI / npm download stats** — both have free public BigQuery datasets
+  (`bigquery-public-data.pypi.file_downloads`; npm's registry download API
+  is also queryable in bulk). Same query pattern as GH Archive. Would
+  corroborate the AI/ML framework cut independently of GitHub activity —
+  e.g. `openai`/`langchain`/`transformers` package download trends — a
+  signal GH Archive can't give directly (a repo can exist without anyone
+  installing the package).
+- **Stack Overflow Developer Survey** — annual, self-reported "% of devs
+  using AI tools" and similar questions. Not a queryable time series (a
+  handful of dated data points, like the GitHub user-count milestones),
+  but adds a qualitative anchor alongside the objective GitHub metrics.
+
+**Considered and rejected:** GitLab and Bitbucket. Neither has anything
+equivalent to GH Archive — no comprehensive historical public event
+dataset, and their APIs are rate-limited with no bulk historical query
+path. Not worth the cost for the marginal coverage they'd add, since
+GitHub is already the dominant public-activity dataset by a wide margin.
+
 ## Out of scope (this pass)
 
 - Geographic breakdown (data quality — see above).
@@ -174,3 +197,4 @@ ai_impact/
 - Static narrative report — artifact only, for now.
 - Trend-extrapolation statistical modeling beyond a simple pre-2022 linear
   projection for the "expected baseline" dashed line.
+- PyPI/npm and Stack Overflow Survey cross-checks (see Future phases).
