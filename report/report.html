@@ -329,6 +329,12 @@ footer { color: var(--muted); font-size: 13px; max-width: 80ch; }
       <h2 id="users-h">Size of the user base</h2>
       <p>The line counts distinct accounts seen in public events for the first time, added up from January 2015. The diamonds are GitHub's own published developer counts, which include private-only accounts. They are reference points from outside this dataset, so the two will not match.</p>
     </div>
+    <div class="caveat" role="note">
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 7v4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="4.6" r="1" fill="currentColor"/></svg>
+      <div>
+        <p><strong>Accounts first active before 2015 are never counted.</strong> The line only adds an account in the month it first appears, and only from January 2015 on. Anyone whose first public activity came earlier is left out at every point in the series, so the line sits below the true user base by a fixed amount throughout, not only in the early years.</p>
+      </div>
+    </div>
     <div class="chart" id="users-chart"></div>
     <div class="legend" id="users-legend"></div>
     <details class="table-view"><summary>View data table</summary><div class="table-wrap" id="users-table"></div></details>
@@ -725,7 +731,7 @@ footer { color: var(--muted); font-size: 13px; max-width: 80ch; }
         table: [{ label: "Commits", fmt: (d) => fmtInt(d.commits) }, { label: "Active contributors", fmt: (d) => fmtInt(d.actors) }, { label: "Per contributor", fmt: (d) => fmtDec(d.perActor) }],
       },
       normalized: {
-        caption: "Commits divided by the cumulative count of accounts first seen since January 2015. Early months are inflated because that count starts near zero, so compare the shape after about 2017.",
+        caption: "Commits divided by the cumulative count of accounts first seen in public events since January 2015. Anyone active on GitHub before then is never added to this count, at any point in the series, so the true developer base is understated throughout. The ratio is also extreme in the first months, when the count starts near zero.",
         series: [{ id: "n", label: "Commits per cumulative user", color: "var(--s1)", values: vol.map((d) => ({ date: d.date, v: d.perCum })) }],
         yTick: d3.format(".2~f"), yVal: d3.format(",.3f"),
         extra: (t, d, i) => t.append(el("div", "tt-note", fmtInt(vol[i].commits) + " commits / " + (vol[i].cum != null ? fmtInt(vol[i].cum) : "n/a") + " cumulative users")),
