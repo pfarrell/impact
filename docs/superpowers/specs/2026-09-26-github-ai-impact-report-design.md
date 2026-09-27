@@ -37,9 +37,19 @@ several years of post-LLM data to compare against.
 `gcloud auth application-default login` (personal use — no service account
 key management). Every query restricts columns and event types to the
 minimum needed and relies on monthly table partitioning to control bytes
-scanned. Expected total cost for a full historical backfill: low
-single-digit dollars, likely within BigQuery's 1TB/month free tier.
-Ongoing refreshes (incremental, new months only) cost near-zero.
+scanned. **Cost:** GH Archive tables are not clustered by event `type`, so
+a `type = 'PushEvent'` filter does not reduce bytes scanned; only the
+`_TABLE_SUFFIX` month range does. Three of the four queries read
+`payload` (for `$.size` / `$.action`), and `payload` is most of GH
+Archive's bytes, so a full 2015–present backfill is likely **TB-scale —
+on the order of tens to low hundreds of dollars** at on-demand pricing,
+well beyond the 1 TiB/month free tier. The backfill therefore dry-runs
+every query first, prints the estimated scan and cost, and asks for
+confirmation before running. Every real query also carries a per-query
+`maximum_bytes_billed` cap (`BQ_MAX_BYTES_BILLED`, default 2 TiB) so a
+wrong estimate fails the query instead of billing past the ceiling.
+Ongoing refreshes (incremental, new months only) scan roughly one month
+of data per query, so they cost a small fraction of the backfill.
 
 **Geography:** out of scope. GitHub's only location signal is a
 free-text, self-reported profile field with no lat/long and heavy
@@ -66,7 +76,11 @@ normalize volume metrics:
   This is a lower-bound proxy for GitHub's active public developer base —
   it undercounts anyone who never appears in a public event (private-only
   users, lurkers), but is internally consistent and derived from the same
-  pipeline as everything else.
+  pipeline as everything else. The running total is accumulated from GH
+  Archive's first month (2011) so accounts first seen before 2015 are
+  included; only the 2015-onward rows are written out. Accounts whose
+  only public activity predates GH Archive (early 2011) are still
+  missing.
 - **GitHub's published user milestones** (reference, hand-maintained): a
   small table of dated headline figures GitHub itself has published (e.g.
   blog posts, Octoverse reports announcing "100 million developers," etc.),
@@ -126,9 +140,12 @@ mechanism.
   is exactly the metric that most needs to see repos created after
   ~2022, which the static snapshot would otherwise miss entirely.
   Tracked as its own volume and share-of-total trend, separate from the
-  general language cut. Matching repo name substrings is a heuristic
-  (e.g. misses repos with no keyword in the name) — the report should
-  note this as an approximate, name-based signal.
+  general language cut. Only the repo-name segment (after `owner/`) is
+  matched, and each keyword must appear as its own token (so `jax` does
+  not match `ajax`, and an owner named `claude` does not pull in all of
+  its repos). This is still a heuristic (e.g. misses repos with no
+  keyword in the name) — the report should note this as an approximate,
+  name-based signal.
 
 ## Repository structure
 

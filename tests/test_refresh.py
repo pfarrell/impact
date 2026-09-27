@@ -87,3 +87,49 @@ def test_run_refresh_appends_only_new_months(tmp_path):
 
     meta = json.loads((tmp_path / "_meta.json").read_text())
     assert meta == {"last_refreshed_month": "202608", "total_bytes_billed": 600}
+
+
+class FailingOnNthCallClient(FakeBigQueryClient):
+    def __init__(self, responses, fail_on_call):
+        super().__init__(responses)
+        self._fail_on_call = fail_on_call
+
+    def run_query(self, sql, params):
+        if len(self.calls) + 1 == self._fail_on_call:
+            self.calls.append(params)
+            raise RuntimeError("simulated BigQuery failure")
+        return super().run_query(sql, params)
+
+
+def _snapshot(directory):
+    return {p.name: p.read_text() for p in sorted(directory.iterdir())}
+
+
+def test_run_refresh_failure_mid_run_leaves_existing_files_untouched(tmp_path):
+    _seed_existing_data(tmp_path)
+    (tmp_path / "milestones.json").write_text("{}")
+    before = _snapshot(tmp_path)
+    responses = [
+        QueryResult(
+            rows=[
+                {
+                    "year_month": "202509",
+                    "push_count": 5,
+                    "commit_count": 9,
+                    "pr_opened_count": 1,
+                    "active_repo_count": 2,
+                    "active_actor_count": 3,
+                }
+            ],
+            bytes_billed=10,
+        ),
+        QueryResult(rows=[{"year_month": "202509", "new_actor_count": 7}], bytes_billed=20),
+        QueryResult(rows=[{"year_month": "202509", "ai_commit_count": 2}], bytes_billed=40),
+    ]
+    fake_bq = FailingOnNthCallClient(responses, fail_on_call=3)
+
+    with pytest.raises(RuntimeError, match="simulated"):
+        run_refresh(fake_bq, data_dir=tmp_path, today=date(2026, 9, 26))
+
+    assert len(fake_bq.calls) == 3
+    assert _snapshot(tmp_path) == before

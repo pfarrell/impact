@@ -5,7 +5,7 @@ import json
 from datetime import date
 from pathlib import Path
 
-from scripts.bq_client import BigQueryClient
+from scripts.bq_client import BigQueryClient, max_bytes_billed_from_env
 from scripts.config_loader import build_keyword_regex, load_ai_ml_keywords, load_milestones
 from scripts.csv_store import append_rows, last_cumulative_value, with_running_cumulative
 from scripts.meta_store import read_meta, write_meta
@@ -40,41 +40,38 @@ def run_refresh(bq: BigQueryClient, data_dir: Path = DATA_DIR, today: date | Non
         return 0
 
     start_suffix = next_month_suffix(last_month)
-    total_bytes_billed = 0
-
-    volume_sql = (QUERIES_DIR / "monthly_volume.sql").read_text()
-    result = bq.run_query(volume_sql, {"start_suffix": start_suffix, "end_suffix": end_suffix})
-    append_rows(data_dir / "monthly_volume.csv", VOLUME_FIELDS, result.rows)
-    total_bytes_billed += result.bytes_billed
-
-    actors_sql = (QUERIES_DIR / "cumulative_actors.sql").read_text()
-    result = bq.run_query(actors_sql, {"start_suffix": start_suffix, "end_suffix": end_suffix})
-    starting_total = last_cumulative_value(data_dir / "cumulative_actors.csv", "cumulative_total")
-    rows_with_cumulative = with_running_cumulative(
-        result.rows, "new_actor_count", "cumulative_total", starting_total
-    )
-    append_rows(data_dir / "cumulative_actors.csv", ACTORS_FIELDS, rows_with_cumulative)
-    total_bytes_billed += result.bytes_billed
-
-    language_sql = (QUERIES_DIR / "monthly_language.sql").read_text()
-    result = bq.run_query(language_sql, {"start_suffix": start_suffix, "end_suffix": end_suffix})
-    append_rows(data_dir / "monthly_language.csv", LANGUAGE_FIELDS, result.rows)
-    total_bytes_billed += result.bytes_billed
-
+    params = {"start_suffix": start_suffix, "end_suffix": end_suffix}
     keyword_pattern = build_keyword_regex(load_ai_ml_keywords())
-    ai_topics_sql = (QUERIES_DIR / "monthly_ai_topics.sql").read_text()
-    result = bq.run_query(
-        ai_topics_sql,
-        {"start_suffix": start_suffix, "end_suffix": end_suffix, "keyword_pattern": keyword_pattern},
-    )
-    append_rows(data_dir / "monthly_ai_topics.csv", AI_TOPICS_FIELDS, result.rows)
-    total_bytes_billed += result.bytes_billed
 
-    (data_dir / "milestones.json").write_text(json.dumps(load_milestones(), indent=2))
+    # Run every query before writing anything. If any query fails, no CSV has
+    # been appended and _meta.json hasn't advanced, so the next run retries the
+    # same months cleanly instead of appending duplicates (and double-counting
+    # the cumulative actor total).
+    volume = bq.run_query((QUERIES_DIR / "monthly_volume.sql").read_text(), params)
+    actors = bq.run_query((QUERIES_DIR / "cumulative_actors.sql").read_text(), params)
+    language = bq.run_query((QUERIES_DIR / "monthly_language.sql").read_text(), params)
+    ai_topics = bq.run_query(
+        (QUERIES_DIR / "monthly_ai_topics.sql").read_text(),
+        {**params, "keyword_pattern": keyword_pattern},
+    )
+    total_bytes_billed = sum(r.bytes_billed for r in (volume, actors, language, ai_topics))
+
+    starting_total = last_cumulative_value(data_dir / "cumulative_actors.csv", "cumulative_total")
+    actors_rows = with_running_cumulative(actors.rows, "new_actor_count", "cumulative_total", starting_total)
+    milestones = load_milestones()
+
+    append_rows(data_dir / "monthly_volume.csv", VOLUME_FIELDS, volume.rows)
+    append_rows(data_dir / "cumulative_actors.csv", ACTORS_FIELDS, actors_rows)
+    append_rows(data_dir / "monthly_language.csv", LANGUAGE_FIELDS, language.rows)
+    append_rows(data_dir / "monthly_ai_topics.csv", AI_TOPICS_FIELDS, ai_topics.rows)
+    (data_dir / "milestones.json").write_text(json.dumps(milestones, indent=2))
 
     write_meta(data_dir / "_meta.json", last_refreshed_month=end_suffix, additional_bytes_billed=total_bytes_billed)
     return total_bytes_billed
 
 
 if __name__ == "__main__":
-    run_refresh(BigQueryClient())
+    # Refresh is incremental and normally cheap, so no estimate/confirm step,
+    # but the per-query billing cap still applies (BQ_MAX_BYTES_BILLED).
+    total = run_refresh(BigQueryClient(maximum_bytes_billed=max_bytes_billed_from_env()))
+    print(f"Refresh complete. Bytes billed: {total / 1e9:,.1f} GB")
