@@ -19,8 +19,17 @@ def load_ai_ml_keywords(path: Path = DEFAULT_KEYWORDS_PATH) -> list[str]:
 
 
 def build_keyword_regex(keywords: list[str]) -> str:
+    """Builds an RE2/Python regex matching any keyword as a standalone token.
+
+    Intended to run against the lowercased repo-name segment (no owner). The
+    keyword must not be preceded by a letter or digit, so "jax" doesn't match
+    inside "ajax" and "gpt" doesn't match inside "chatgpt" (list compound names
+    like that explicitly). It must not be followed by a letter, so "llamas" is
+    rejected, but a trailing digit is allowed so versioned names like
+    "gpt4all", "llama2", and "llm2vec" still match.
+    """
     escaped = [re.escape(k) for k in keywords]
-    return "(" + "|".join(escaped) + ")"
+    return "(^|[^a-z0-9])(" + "|".join(escaped) + ")([^a-z]|$)"
 
 
 def load_milestones(path: Path = DEFAULT_MILESTONES_PATH) -> dict:

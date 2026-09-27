@@ -1,6 +1,10 @@
-# Matched (case-insensitive substring) against repo.name for the AI/ML
-# & framework cut. Extend this list as new frameworks/tools emerge --
-# it's read fresh on every backfill/refresh run.
+# Matched (case-insensitive) against the repo-name segment of repo.name --
+# the part after "owner/" -- for the AI/ML & framework cut. Each keyword
+# must appear as its own token: not preceded by a letter/digit and not
+# followed by a letter (a trailing digit is fine, e.g. "gpt4all", "llama2").
+# So "jax" does not match "ajax", and "gpt" does not match "chatgpt" --
+# list compound names like that explicitly. Extend this list as new
+# frameworks/tools emerge -- it's read fresh on every backfill/refresh run.
 keywords:
   - pytorch
   - tensorflow
@@ -11,11 +15,15 @@ keywords:
   - transformers
   - langchain
   - llama
+  - llamaindex
   - openai
   - anthropic
   - claude
   - gpt
+  - chatgpt
+  - autogpt
   - llm
+  - llms
   - copilot
   - cursor-ai
   - ollama

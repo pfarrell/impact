@@ -1,4 +1,6 @@
 # tests/test_config_loader.py
+import re
+
 import pytest
 import yaml
 
@@ -22,10 +24,30 @@ def test_load_ai_ml_keywords_rejects_empty_list(tmp_path):
         load_ai_ml_keywords(path)
 
 
-def test_build_keyword_regex_escapes_special_characters():
+def test_build_keyword_regex_escapes_special_characters_and_anchors_boundaries():
     result = build_keyword_regex(["pytorch", "c++"])
 
-    assert result == r"(pytorch|c\+\+)"
+    assert result == r"(^|[^a-z0-9])(pytorch|c\+\+)([^a-z]|$)"
+
+
+@pytest.mark.parametrize(
+    "repo_segment",
+    ["jax", "jax-md", "google-jax", "flax_jax_examples", "learning.jax", "gpt4all", "llm2vec", "llama.cpp"],
+)
+def test_build_keyword_regex_matches_keyword_as_a_token(repo_segment):
+    pattern = re.compile(build_keyword_regex(["jax", "gpt", "llm", "llama"]))
+
+    assert pattern.search(repo_segment)
+
+
+@pytest.mark.parametrize(
+    "repo_segment",
+    ["ajax-something", "jquery-ajax", "ajax", "jaxb-tools", "gptables", "allmighty", "llamas"],
+)
+def test_build_keyword_regex_does_not_match_inside_longer_words(repo_segment):
+    pattern = re.compile(build_keyword_regex(["jax", "gpt", "llm", "llama"]))
+
+    assert not pattern.search(repo_segment)
 
 
 def test_load_milestones_returns_both_sections(tmp_path):
