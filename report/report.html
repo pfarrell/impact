@@ -1,0 +1,876 @@
+<title>Commits in the LLM Era</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root {
+  --page: #f4f5f2;
+  --surface: #fcfcfb;
+  --ink: #111413;
+  --ink-2: #4d524f;
+  --muted: #7e837f;
+  --grid: #e3e5e0;
+  --axis: #c2c6c0;
+  --border: rgba(17, 20, 19, 0.11);
+  --ref: #5b605c;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
+  --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7; --s8: #e34948;
+  --other: #aeb2ad;
+  --unknown: #d6d9d4;
+  --control-bg: #eceee9;
+  --control-on: #111413;
+  --control-on-ink: #fcfcfb;
+  --warn-bg: #fff5d9;
+  --warn-edge: #e3a008;
+  --warn-ink: #4a3500;
+  --caveat-bg: #edf2f9;
+  --caveat-edge: #9ab8e0;
+  --caveat-ink: #1d2e45;
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-cond: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0f1110; --surface: #1a1b1a; --ink: #f3f4f1; --ink-2: #c3c6bf; --muted: #8b8f8a;
+    --grid: #2b2d2b; --axis: #3b3e3b; --border: rgba(255, 255, 255, 0.10); --ref: #a9ada7;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+    --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+    --other: #6d716c; --unknown: #3a3d3a;
+    --control-bg: #242624; --control-on: #f3f4f1; --control-on-ink: #111413;
+    --warn-bg: #2d2410; --warn-edge: #fab219; --warn-ink: #ffe3a3;
+    --caveat-bg: #16202c; --caveat-edge: #3a5a82; --caveat-ink: #d4e2f3;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0f1110; --surface: #1a1b1a; --ink: #f3f4f1; --ink-2: #c3c6bf; --muted: #8b8f8a;
+  --grid: #2b2d2b; --axis: #3b3e3b; --border: rgba(255, 255, 255, 0.10); --ref: #a9ada7;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+  --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+  --other: #6d716c; --unknown: #3a3d3a;
+  --control-bg: #242624; --control-on: #f3f4f1; --control-on-ink: #111413;
+  --warn-bg: #2d2410; --warn-edge: #fab219; --warn-ink: #ffe3a3;
+  --caveat-bg: #16202c; --caveat-edge: #3a5a82; --caveat-ink: #d4e2f3;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.55;
+}
+.wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-inline: clamp(16px, 4vw, 40px);
+  padding-block: 32px 64px;
+  display: grid;
+  gap: 28px;
+}
+h1, h2, h3 { font-family: var(--font-cond); font-weight: 600; text-wrap: balance; margin: 0; letter-spacing: -0.005em; }
+h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.08; }
+h2 { font-size: 24px; line-height: 1.2; }
+h3 { font-size: 16px; line-height: 1.3; }
+p { margin: 0; }
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.lede { max-width: 66ch; color: var(--ink-2); font-size: 16px; }
+header.top { display: grid; gap: 12px; }
+code, .mono { font-family: var(--font-mono); font-size: 0.9em; }
+
+/* Synthetic-data banner */
+.synthetic {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  align-items: start;
+  padding: 14px 18px;
+  background: var(--warn-bg);
+  color: var(--warn-ink);
+  border: 2px solid var(--warn-edge);
+  border-radius: 8px;
+}
+.synthetic svg { grid-row: span 2; margin-top: 2px; }
+.synthetic strong { font-size: 16px; font-family: var(--font-cond); font-weight: 600; letter-spacing: 0.01em; }
+.synthetic p { max-width: 80ch; }
+
+/* Key figures */
+.figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.figure { background: var(--surface); padding: 14px 18px; display: grid; gap: 2px; align-content: start; }
+.figure .label { font-size: 13px; color: var(--ink-2); }
+.figure .value { font-family: var(--font-cond); font-size: 30px; font-weight: 600; line-height: 1.15; }
+.figure .sub { font-size: 12px; color: var(--muted); font-family: var(--font-mono); }
+
+/* Sections */
+section.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: clamp(16px, 3vw, 28px);
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+.panel-head { display: grid; gap: 6px; }
+.panel-head p { color: var(--ink-2); max-width: 70ch; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+.controls .ctl-label { font-size: 13px; color: var(--ink-2); }
+.seg {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 3px;
+  background: var(--control-bg);
+  border-radius: 8px;
+}
+.seg button {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  border: 0;
+  background: transparent;
+  color: var(--ink-2);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.seg button:hover { color: var(--ink); background: var(--border); }
+.seg button[aria-pressed="true"] { background: var(--control-on); color: var(--control-on-ink); }
+button:focus-visible, [tabindex]:focus-visible, summary:focus-visible { outline: 2px solid var(--s1); outline-offset: 2px; }
+.view-caption { color: var(--ink-2); font-size: 14px; max-width: 75ch; min-height: 3em; }
+
+.chart { width: 100%; min-width: 0; position: relative; }
+.chart svg { display: block; overflow: visible; }
+.chart text { font-family: var(--font-mono); font-size: 11px; fill: var(--muted); }
+.chart .tick line { stroke: var(--grid); }
+.chart .domain { stroke: none; }
+.chart .baseline { stroke: var(--axis); }
+.chart .direct-label { font-family: var(--font-sans); font-size: 12px; fill: var(--ink-2); font-weight: 500; }
+.chart .ms-line { stroke: var(--ref); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0.7; }
+.chart .ms-flag circle { fill: var(--surface); stroke: var(--ref); stroke-width: 1.25; }
+.chart .ms-flag text { fill: var(--ink); font-size: 10px; font-weight: 500; }
+.chart .ms-hit { fill: transparent; cursor: help; }
+.chart .crosshair { stroke: var(--ink-2); stroke-width: 1; }
+.chart .ref-label { font-family: var(--font-mono); font-size: 11px; fill: var(--ink); font-weight: 500; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--ink-2); }
+.legend .item { display: inline-flex; align-items: center; gap: 6px; }
+.legend .key-line { width: 18px; height: 0; border-top: 2px solid; }
+.legend .key-line.dashed { border-top-style: dashed; }
+.legend .key-rect { width: 12px; height: 12px; border-radius: 3px; }
+.legend .key-diamond { width: 9px; height: 9px; transform: rotate(45deg); border: 2px solid var(--ink); background: var(--surface); margin-inline: 2px; }
+.legend .key-ms { width: 16px; height: 16px; border-radius: 50%; border: 1.25px solid var(--ref); font-family: var(--font-mono); font-size: 10px; display: inline-grid; place-items: center; color: var(--ink); }
+
+.milestone-key { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--ink-2); }
+.milestone-key .item { display: inline-flex; gap: 6px; align-items: center; }
+.milestone-key .when { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+
+.caveat {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--caveat-bg);
+  color: var(--caveat-ink);
+  border: 1px solid var(--caveat-edge);
+  border-radius: 8px;
+  font-size: 14px;
+}
+.caveat strong { font-weight: 600; }
+.caveat svg { margin-top: 3px; }
+.caveat p + p { margin-top: 6px; }
+
+.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+.grid-2 > div { display: grid; gap: 8px; min-width: 0; align-content: start; }
+
+details.table-view { font-size: 13px; }
+details.table-view summary { cursor: pointer; color: var(--ink-2); width: max-content; }
+.table-wrap { overflow-x: auto; max-height: 320px; overflow-y: auto; margin-top: 8px; border: 1px solid var(--border); border-radius: 6px; }
+.table-wrap table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+.table-wrap th, .table-wrap td { padding: 5px 10px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--grid); }
+.table-wrap th:first-child, .table-wrap td:first-child { text-align: left; font-family: var(--font-mono); }
+.table-wrap thead th { position: sticky; top: 0; background: var(--surface); color: var(--ink-2); font-weight: 500; }
+
+.tooltip {
+  position: fixed;
+  z-index: 10;
+  pointer-events: none;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  max-width: min(320px, calc(100vw - 32px));
+  display: grid;
+  gap: 4px;
+}
+.tooltip[hidden] { display: none; }
+.tooltip .tt-head { font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); }
+.tooltip .tt-row { display: grid; grid-template-columns: 14px auto 1fr; gap: 8px; align-items: center; }
+.tooltip .tt-key { width: 14px; border-top: 2px solid; }
+.tooltip .tt-key.dashed { border-top-style: dashed; }
+.tooltip .tt-val { font-weight: 600; font-variant-numeric: tabular-nums; }
+.tooltip .tt-name { color: var(--ink-2); }
+.tooltip .tt-note { color: var(--ink-2); font-size: 12px; border-top: 1px solid var(--grid); padding-top: 4px; }
+
+.load-error { padding: 16px; border: 2px solid var(--s8); border-radius: 8px; }
+footer { color: var(--muted); font-size: 13px; max-width: 80ch; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow" id="span-label">GH Archive public events, monthly</div>
+    <h1>Commits in the LLM Era</h1>
+    <p class="lede">Public GitHub commit activity, month by month, set against the release dates of the tools that brought large language models into everyday coding. Four views of the same series ask whether output rose after late 2022, and whether the rise holds once you account for more people on the platform.</p>
+  </header>
+
+  <!-- SYNTHETIC DATA BANNER: remove this block once data/ holds real backfill output from `python -m scripts.backfill`. -->
+  <div class="synthetic" role="note" id="synthetic-banner">
+    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 1 21h22L12 2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 9v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17.5" r="1.2" fill="currentColor"/></svg>
+    <strong>Placeholder data: these numbers are synthetic</strong>
+    <p>Every figure on this page comes from a made-up dataset built to test the charts. The BigQuery backfill has not been run yet. Do not cite or draw conclusions from any value here. The milestone dates and GitHub user counts are real reference points; everything derived from GH Archive is not.</p>
+  </div>
+
+  <div class="figures" id="figures" aria-label="Key figures"></div>
+
+  <section class="panel" id="volume" aria-labelledby="volume-h">
+    <div class="panel-head">
+      <h2 id="volume-h">Monthly commit volume</h2>
+      <p>Commits pushed to public repositories each month (the sum of PushEvent sizes). Numbered markers are LLM and coding-assistant releases.</p>
+    </div>
+    <div class="controls">
+      <span class="ctl-label" id="view-label">View</span>
+      <div class="seg" role="group" aria-labelledby="view-label" id="view-toggle">
+        <button type="button" id="view-absolute" data-view="absolute" aria-pressed="true">Absolute</button>
+        <button type="button" id="view-per-actor" data-view="per_actor" aria-pressed="false">Per active contributor</button>
+        <button type="button" id="view-normalized" data-view="normalized" aria-pressed="false">Per cumulative user</button>
+        <button type="button" id="view-yoy" data-view="yoy" aria-pressed="false">YoY growth vs trend</button>
+      </div>
+    </div>
+    <p class="view-caption" id="view-caption"></p>
+    <div class="chart" id="volume-chart"></div>
+    <div class="legend" id="volume-legend"></div>
+    <div class="milestone-key" id="milestone-key"></div>
+    <details class="table-view"><summary>View data table</summary><div class="table-wrap" id="volume-table"></div></details>
+  </section>
+
+  <section class="panel" id="language" aria-labelledby="language-h">
+    <div class="panel-head">
+      <h2 id="language-h">Language mix</h2>
+      <p>Each language's share of the month's commits, by the repository's primary language. Languages outside the top group fold into "Other languages".</p>
+    </div>
+    <div class="caveat" role="note">
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 7v4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="4.6" r="1" fill="currentColor"/></svg>
+      <div>
+        <p><strong>Coverage gets weaker in recent years.</strong> Languages come from <code>bigquery-public-data.github_repos</code>, a static snapshot that has not been kept current. Repositories created after that snapshot have no language on record and land in "Unknown", so the Unknown band grows over time.</p>
+        <p>Read recent-year shares as directional, weaker than earlier years, rather than as exact.</p>
+      </div>
+    </div>
+    <div class="controls">
+      <span class="ctl-label" id="topn-label">Show top</span>
+      <div class="seg" role="group" aria-labelledby="topn-label" id="topn-toggle">
+        <button type="button" id="topn-3" data-n="3" aria-pressed="false">3</button>
+        <button type="button" id="topn-5" data-n="5" aria-pressed="true">5</button>
+        <button type="button" id="topn-8" data-n="8" aria-pressed="false">8</button>
+      </div>
+      <span class="ctl-label">languages by total commits</span>
+    </div>
+    <div class="chart" id="language-chart"></div>
+    <div class="legend" id="language-legend"></div>
+    <details class="table-view"><summary>View data table</summary><div class="table-wrap" id="language-table"></div></details>
+  </section>
+
+  <section class="panel" id="ai" aria-labelledby="ai-h">
+    <div class="panel-head">
+      <h2 id="ai-h">AI and ML framework repositories</h2>
+      <p>Commits to repositories whose name suggests AI or ML work, as raw volume and as a share of all public commits that month.</p>
+    </div>
+    <div class="caveat" role="note">
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 7v4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="4.6" r="1" fill="currentColor"/></svg>
+      <div>
+        <p><strong>This is an approximate, name-based match.</strong> A repository counts if its name contains a keyword from <code>config/ai_ml_keywords.yaml</code> (pytorch, tensorflow, huggingface, langchain, openai, llama, copilot and others). It misses AI projects without a keyword in the name and catches some unrelated ones, so treat it as a trend signal, not a full count.</p>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div>
+        <h3>Commits to matched repos</h3>
+        <div class="chart" id="ai-abs-chart"></div>
+      </div>
+      <div>
+        <h3>Share of all public commits</h3>
+        <div class="chart" id="ai-share-chart"></div>
+      </div>
+    </div>
+    <details class="table-view"><summary>View data table</summary><div class="table-wrap" id="ai-table"></div></details>
+  </section>
+
+  <section class="panel" id="users" aria-labelledby="users-h">
+    <div class="panel-head">
+      <h2 id="users-h">Size of the user base</h2>
+      <p>The line counts distinct accounts seen in public events for the first time, added up from January 2015. The diamonds are GitHub's own published developer counts, which include private-only accounts. They are reference points from outside this dataset, so the two will not match.</p>
+    </div>
+    <div class="chart" id="users-chart"></div>
+    <div class="legend" id="users-legend"></div>
+    <details class="table-view"><summary>View data table</summary><div class="table-wrap" id="users-table"></div></details>
+  </section>
+
+  <footer>
+    <p>Sources: GH Archive monthly tables via BigQuery (<code>githubarchive.month.*</code>), <code>bigquery-public-data.github_repos.languages</code> for language, and <code>config/milestones.yaml</code> for release dates and GitHub's published user counts. Hover or focus a chart and use the arrow keys to read exact values.</p>
+  </footer>
+</div>
+
+<div class="tooltip" id="tooltip" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  const FILES = ["monthly_volume.csv", "cumulative_actors.csv", "monthly_language.csv", "monthly_ai_topics.csv", "milestones.json"];
+  const CHATGPT = "202211";
+  const SLOTS = ["var(--s1)", "var(--s2)", "var(--s3)", "var(--s4)", "var(--s5)", "var(--s6)", "var(--s7)", "var(--s8)"];
+
+  // ---------- helpers ----------
+  const ymKey = (s) => String(s).replace("-", "").trim();
+  const parseYM = (s) => { const k = ymKey(s); return new Date(Date.UTC(+k.slice(0, 4), +k.slice(4, 6) - 1, 1)); };
+  const fmtMonth = d3.utcFormat("%b %Y");
+  const fmtInt = d3.format(",");
+  const fmtSI = (v) => {
+    const a = Math.abs(v);
+    if (a >= 1e9) return d3.format(".2~f")(v / 1e9) + "B";
+    if (a >= 1e6) return d3.format(".1f")(v / 1e6) + "M";
+    if (a >= 1e3) return d3.format(".0f")(v / 1e3) + "K";
+    return d3.format(".2~f")(v);
+  };
+  const fmtPct1 = d3.format(".1%");
+  const fmtPct2 = d3.format(".2%");
+  const fmtSignedPct = d3.format("+.1%");
+  const fmtDec = d3.format(",.1f");
+
+  async function load(name) {
+    // Published: files sit next to the page at data/<name>.
+    // Local preview from the repo: the page is in report/, data is ../data/.
+    const tries = ["data/" + name, "../data/" + name];
+    let lastErr;
+    for (const url of tries) {
+      try {
+        const r = await fetch(url);
+        if (!r.ok) throw new Error(url + " → HTTP " + r.status);
+        const text = await r.text();
+        return name.endsWith(".json") ? JSON.parse(text) : d3.csvParse(text);
+      } catch (e) { lastErr = e; }
+    }
+    throw lastErr;
+  }
+
+  // ---------- tooltip ----------
+  const tip = document.getElementById("tooltip");
+  function showTip(evtOrPoint, build) {
+    tip.replaceChildren();
+    build(tip);
+    tip.hidden = false;
+    const pad = 14;
+    const w = tip.offsetWidth, h = tip.offsetHeight;
+    let x = evtOrPoint.clientX + pad, y = evtOrPoint.clientY + pad;
+    if (x + w > window.innerWidth - 8) x = evtOrPoint.clientX - w - pad;
+    if (x < 8) x = 8;
+    if (y + h > window.innerHeight - 8) y = evtOrPoint.clientY - h - pad;
+    if (y < 8) y = 8;
+    tip.style.left = x + "px";
+    tip.style.top = y + "px";
+  }
+  function hideTip() { tip.hidden = true; }
+  function el(tag, cls, text) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function tipRow(parent, color, value, name, dashed, rect) {
+    const row = el("div", "tt-row");
+    const key = el("span", "tt-key" + (dashed ? " dashed" : ""));
+    if (rect) { key.style.border = "0"; key.style.height = "10px"; key.style.width = "10px"; key.style.borderRadius = "2px"; key.style.background = color; }
+    else key.style.borderTopColor = color;
+    row.append(key, el("span", "tt-val", value), el("span", "tt-name", name));
+    parent.append(row);
+  }
+
+  // ---------- legend / table ----------
+  function renderLegend(container, items) {
+    container.replaceChildren();
+    for (const it of items) {
+      const item = el("span", "item");
+      let key;
+      if (it.kind === "rect") { key = el("span", "key-rect"); key.style.background = it.color; }
+      else if (it.kind === "diamond") { key = el("span", "key-diamond"); }
+      else { key = el("span", "key-line" + (it.dashed ? " dashed" : "")); key.style.borderTopColor = it.color; }
+      item.append(key, el("span", null, it.label));
+      container.append(item);
+    }
+  }
+  function renderTable(container, columns, rows) {
+    const table = el("table");
+    const thead = el("thead"), tr = el("tr");
+    columns.forEach((c) => tr.append(el("th", null, c.label)));
+    thead.append(tr);
+    const tbody = el("tbody");
+    for (const r of rows) {
+      const row = el("tr");
+      columns.forEach((c) => row.append(el("td", null, c.fmt(r))));
+      tbody.append(row);
+    }
+    table.append(thead, tbody);
+    container.replaceChildren(table);
+  }
+
+  // ---------- milestone layer ----------
+  // Flags closer than FLAG_GAP px stack upward into extra rows so the numbers never overlap.
+  const FLAG_GAP = 18, FLAG_ROW = 19;
+  function flagRows(x, milestones) {
+    const rows = [];
+    let prevX = -Infinity, prevRow = -1;
+    for (const m of milestones) {
+      const px = x(m.date);
+      const row = px - prevX < FLAG_GAP ? prevRow + 1 : 0;
+      rows.push(row);
+      prevX = px; prevRow = row;
+    }
+    return rows;
+  }
+  const flagTop = (rows) => 16 + FLAG_ROW * (d3.max(rows) + 1 || 1);
+  function drawMilestones(g, x, innerH, milestones, domain, rows) {
+    const layer = g.append("g").attr("class", "milestones");
+    milestones.forEach((m, i) => {
+      if (m.date < domain[0] || m.date > domain[1]) return;
+      const px = x(m.date), fy = -18 - FLAG_ROW * rows[i];
+      layer.append("line").attr("class", "ms-line").attr("x1", px).attr("x2", px).attr("y1", fy + 8).attr("y2", innerH);
+      const flag = layer.append("g").attr("class", "ms-flag").attr("transform", `translate(${px},${fy})`);
+      flag.append("circle").attr("r", 8);
+      flag.append("text").attr("text-anchor", "middle").attr("dy", "0.35em").text(i + 1);
+      layer.append("circle").attr("class", "ms-hit").attr("cx", px).attr("cy", fy).attr("r", 10)
+        .attr("tabindex", 0).attr("role", "img").attr("aria-label", `${m.label}, ${fmtMonth(m.date)}`)
+        .on("pointerenter pointermove", (ev) => showTip(ev, (t) => { t.append(el("div", "tt-head", fmtMonth(m.date))); t.append(el("div", null, m.label)); }))
+        .on("pointerleave blur", hideTip)
+        .on("focus", function () { const b = this.getBoundingClientRect(); showTip({ clientX: b.right, clientY: b.bottom }, (t) => { t.append(el("div", "tt-head", fmtMonth(m.date))); t.append(el("div", null, m.label)); }); });
+    });
+  }
+  const milestoneAt = (milestones, d) => milestones.filter((m) => +m.date === +d);
+
+  // ---------- line chart ----------
+  // opts: { series:[{id,label,color,dashed,values:[{date,v}]}], yTick, yVal, height, zeroLine, includeZero,
+  //         milestones, refPoints:[{date,v,label,detail}], directLabels, extraTip(date) }
+  function lineChart(container, opts) {
+    const width = Math.max(280, container.clientWidth);
+    const height = opts.height || 320;
+    const narrow = width < 520;
+    const useDirect = opts.directLabels !== false && !narrow && opts.series.length <= 4;
+    const labelW = useDirect ? d3.max(opts.series, (s) => s.label.length) * 7 + 14 : 14;
+    const m = { top: 12, right: Math.min(180, labelW), bottom: 26, left: 52 };
+    const iw = width - m.left - m.right;
+
+    const all = opts.series.flatMap((s) => s.values);
+    const dates = opts.series[0].values.map((d) => d.date);
+    const x = d3.scaleUtc().domain(d3.extent(all, (d) => d.date)).range([0, iw]);
+    const rows = opts.milestones ? flagRows(x, opts.milestones) : [];
+    if (opts.milestones) m.top = flagTop(rows);
+    const ih = height - m.top - m.bottom;
+    let yExt = d3.extent(all.concat(opts.refPoints || []), (d) => d.v);
+    if (opts.includeZero !== false) yExt = [Math.min(0, yExt[0]), Math.max(0, yExt[1])];
+    const y = d3.scaleLinear().domain(yExt).nice(5).range([ih, 0]);
+
+    const svg = d3.select(container).html("").append("svg").attr("width", width).attr("height", height)
+      .attr("role", "img").attr("aria-label", opts.ariaLabel || "");
+    const g = svg.append("g").attr("transform", `translate(${m.left},${m.top})`);
+
+    g.append("g").call(d3.axisLeft(y).ticks(5).tickSize(-iw).tickFormat(opts.yTick)).call((a) => a.selectAll(".tick text").attr("x", -8));
+    g.append("g").attr("transform", `translate(0,${ih})`)
+      .call(d3.axisBottom(x).ticks(d3.utcYear.every(narrow ? 2 : 1)).tickSize(0).tickFormat(d3.utcFormat(narrow ? "'%y" : "%Y")))
+      .call((a) => a.selectAll("text").attr("dy", "1.2em"));
+    const zeroY = y.domain()[0] <= 0 && y.domain()[1] >= 0 ? y(0) : ih;
+    g.append("line").attr("class", "baseline").attr("x1", 0).attr("x2", iw).attr("y1", zeroY).attr("y2", zeroY);
+
+    if (opts.milestones) drawMilestones(g, x, ih, opts.milestones, x.domain(), rows);
+
+    const line = d3.line().defined((d) => d.v != null && isFinite(d.v)).x((d) => x(d.date)).y((d) => y(d.v));
+    for (const s of opts.series) {
+      if (s.area) {
+        const area = d3.area().defined((d) => d.v != null && isFinite(d.v)).x((d) => x(d.date)).y0(y(0)).y1((d) => y(d.v));
+        g.append("path").datum(s.values).attr("d", area).style("fill", s.color).style("fill-opacity", 0.12);
+      }
+      g.append("path").datum(s.values).attr("d", line).style("fill", "none").style("stroke", s.color)
+        .attr("stroke-width", 2).attr("stroke-linejoin", "round").attr("stroke-linecap", "round")
+        .attr("stroke-dasharray", s.dashed ? "6 4" : null);
+    }
+
+    if (useDirect) {
+      const labels = opts.series.map((s) => {
+        const last = [...s.values].reverse().find((d) => d.v != null && isFinite(d.v));
+        return { s, y: y(last.v) };
+      }).sort((a, b) => a.y - b.y);
+      for (let i = 1; i < labels.length; i++) if (labels[i].y - labels[i - 1].y < 14) labels[i].y = labels[i - 1].y + 14;
+      for (const l of labels) g.append("text").attr("class", "direct-label").attr("x", iw + 8).attr("y", l.y).attr("dy", "0.35em").text(l.s.label);
+    }
+
+    // reference points (externally published figures)
+    if (opts.refPoints) {
+      const rp = g.append("g");
+      for (const p of opts.refPoints) {
+        const px = x(p.date), py = y(p.v);
+        rp.append("path").attr("d", d3.symbol(d3.symbolDiamond, 90)()).attr("transform", `translate(${px},${py})`)
+          .style("fill", "var(--surface)").style("stroke", "var(--ink)").attr("stroke-width", 2);
+        rp.append("text").attr("class", "ref-label").attr("x", px - 8).attr("y", py - 10).attr("text-anchor", "end").text(p.label);
+      }
+    }
+
+    // crosshair
+    const cross = g.append("line").attr("class", "crosshair").attr("y1", 0).attr("y2", ih).style("display", "none");
+    const dots = opts.series.map((s) => g.append("circle").attr("r", 4.5).style("fill", s.color).style("stroke", "var(--surface)").attr("stroke-width", 2).style("display", "none"));
+    const overlay = g.append("rect").attr("width", iw).attr("height", ih).style("fill", "transparent")
+      .attr("tabindex", 0).attr("aria-label", (opts.ariaLabel || "Chart") + ". Use left and right arrow keys to read values.");
+    const bis = d3.bisector((d) => d).center;
+    let cur = dates.length - 1;
+    function update(i, pt) {
+      cur = Math.max(0, Math.min(dates.length - 1, i));
+      const d = dates[cur], px = x(d);
+      cross.attr("x1", px).attr("x2", px).style("display", null);
+      opts.series.forEach((s, k) => {
+        const v = s.values[cur] && s.values[cur].v;
+        if (v != null && isFinite(v)) dots[k].attr("cx", px).attr("cy", y(v)).style("display", null);
+        else dots[k].style("display", "none");
+      });
+      showTip(pt, (t) => {
+        t.append(el("div", "tt-head", fmtMonth(d)));
+        opts.series.forEach((s) => {
+          const v = s.values[cur] && s.values[cur].v;
+          tipRow(t, s.color, v != null && isFinite(v) ? opts.yVal(v) : "n/a", s.label, s.dashed);
+        });
+        if (opts.extraTip) opts.extraTip(t, d, cur);
+        if (opts.milestones) for (const ms of milestoneAt(opts.milestones, d)) t.append(el("div", "tt-note", "Milestone: " + ms.label));
+      });
+    }
+    function clear() { cross.style("display", "none"); dots.forEach((c) => c.style("display", "none")); hideTip(); }
+    overlay.on("pointermove", (ev) => { const [mx] = d3.pointer(ev); update(bis(dates, x.invert(mx)), ev); })
+      .on("pointerleave", clear).on("blur", clear)
+      .on("focus", function () { const b = this.getBoundingClientRect(); update(cur, { clientX: b.left + x(dates[cur]), clientY: b.top + 20 }); })
+      .on("keydown", function (ev) {
+        if (ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") return;
+        ev.preventDefault();
+        const b = this.getBoundingClientRect();
+        const ni = cur + (ev.key === "ArrowRight" ? 1 : -1);
+        update(ni, { clientX: b.left + x(dates[Math.max(0, Math.min(dates.length - 1, ni))]), clientY: b.top + 20 });
+      });
+
+    // reference-point hit targets sit above the overlay so they win the pointer
+    if (opts.refPoints) {
+      for (const p of opts.refPoints) {
+        const build = (t) => {
+          t.append(el("div", "tt-head", fmtMonth(p.date) + " · published figure"));
+          tipRow(t, "var(--ink)", p.label, "GitHub developers", false);
+          t.append(el("div", "tt-note", p.detail));
+        };
+        g.append("circle").attr("cx", x(p.date)).attr("cy", y(p.v)).attr("r", 13).style("fill", "transparent").style("cursor", "help")
+          .attr("tabindex", 0).attr("aria-label", `GitHub published ${p.label} developers, ${fmtMonth(p.date)}`)
+          .on("pointerenter pointermove", (ev) => { clear(); showTip(ev, build); })
+          .on("pointerleave blur", hideTip)
+          .on("focus", function () { const b = this.getBoundingClientRect(); showTip({ clientX: b.right, clientY: b.bottom }, build); });
+      }
+    }
+  }
+
+  // ---------- stacked share chart ----------
+  function stackedShare(container, opts) {
+    const width = Math.max(280, container.clientWidth);
+    const height = opts.height || 340;
+    const narrow = width < 520;
+    const m = { top: 34, right: 14, bottom: 26, left: 44 };
+    const iw = width - m.left - m.right;
+    const rows = opts.rows, keys = opts.keys;
+    const x = d3.scaleUtc().domain(d3.extent(rows, (d) => d.date)).range([0, iw]);
+    const fRows = flagRows(x, opts.milestones);
+    m.top = flagTop(fRows);
+    const ih = height - m.top - m.bottom;
+    const y = d3.scaleLinear().domain([0, 1]).range([ih, 0]);
+    const svg = d3.select(container).html("").append("svg").attr("width", width).attr("height", height).attr("role", "img").attr("aria-label", opts.ariaLabel);
+    const g = svg.append("g").attr("transform", `translate(${m.left},${m.top})`);
+    g.append("g").call(d3.axisLeft(y).ticks(5).tickSize(-iw).tickFormat(d3.format(".0%"))).call((a) => a.selectAll(".tick text").attr("x", -8));
+    g.append("g").attr("transform", `translate(0,${ih})`)
+      .call(d3.axisBottom(x).ticks(d3.utcYear.every(narrow ? 2 : 1)).tickSize(0).tickFormat(d3.utcFormat(narrow ? "'%y" : "%Y")))
+      .call((a) => a.selectAll("text").attr("dy", "1.2em"));
+    const series = d3.stack().keys(keys.map((k) => k.id))(rows);
+    const area = d3.area().x((d) => x(d.data.date)).y0((d) => y(d[0])).y1((d) => y(d[1]));
+    g.append("g").selectAll("path").data(series).join("path").attr("d", area)
+      .style("fill", (s, i) => keys[i].color).style("stroke", "var(--surface)").attr("stroke-width", 1.5).attr("stroke-linejoin", "round");
+    drawMilestones(g, x, ih, opts.milestones, x.domain(), fRows);
+
+    const cross = g.append("line").attr("class", "crosshair").attr("y1", 0).attr("y2", ih).style("display", "none");
+    const dates = rows.map((r) => r.date);
+    const bis = d3.bisector((d) => d).center;
+    let cur = dates.length - 1;
+    function update(i, pt) {
+      cur = Math.max(0, Math.min(dates.length - 1, i));
+      const r = rows[cur], px = x(r.date);
+      cross.attr("x1", px).attr("x2", px).style("display", null);
+      showTip(pt, (t) => {
+        t.append(el("div", "tt-head", fmtMonth(r.date) + " · " + fmtSI(r._total) + " commits"));
+        [...keys].reverse().forEach((k) => tipRow(t, k.color, fmtPct1(r[k.id]), k.label, false, true));
+        for (const ms of milestoneAt(opts.milestones, r.date)) t.append(el("div", "tt-note", "Milestone: " + ms.label));
+      });
+    }
+    function clear() { cross.style("display", "none"); hideTip(); }
+    g.append("rect").attr("width", iw).attr("height", ih).style("fill", "transparent").attr("tabindex", 0)
+      .attr("aria-label", opts.ariaLabel + ". Use left and right arrow keys to read values.")
+      .on("pointermove", (ev) => { const [mx] = d3.pointer(ev); update(bis(dates, x.invert(mx)), ev); })
+      .on("pointerleave blur", clear)
+      .on("focus", function () { const b = this.getBoundingClientRect(); update(cur, { clientX: b.left + x(dates[cur]), clientY: b.top + 20 }); })
+      .on("keydown", function (ev) {
+        if (ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") return;
+        ev.preventDefault();
+        const b = this.getBoundingClientRect();
+        const ni = Math.max(0, Math.min(dates.length - 1, cur + (ev.key === "ArrowRight" ? 1 : -1)));
+        update(ni, { clientX: b.left + x(dates[ni]), clientY: b.top + 20 });
+      });
+  }
+
+  // ---------- main ----------
+  async function main() {
+    const [volRaw, actRaw, langRaw, aiRaw, ms] = await Promise.all(FILES.map(load));
+
+    const milestones = (ms.llm_milestones || []).map((m) => ({ date: parseYM(m.date), key: ymKey(m.date), label: m.label }))
+      .sort((a, b) => a.date - b.date);
+    const userMs = (ms.github_user_milestones || []).map((m) => ({ date: parseYM(m.date), users: +m.users_millions, source: m.source }));
+
+    const actByKey = new Map(actRaw.map((r) => [ymKey(r.year_month), { newc: +r.new_actor_count, cum: +r.cumulative_total }]));
+    const vol = volRaw.map((r) => ({
+      key: ymKey(r.year_month), date: parseYM(r.year_month),
+      commits: +r.commit_count, pushes: +r.push_count, prs: +r.pr_opened_count,
+      repos: +r.active_repo_count, actors: +r.active_actor_count,
+    })).sort((a, b) => a.date - b.date);
+    vol.forEach((d) => { const a = actByKey.get(d.key); d.cum = a ? a.cum : null; });
+    const volByKey = new Map(vol.map((d) => [d.key, d]));
+
+    // Pre-ChatGPT linear trend on commit_count, x = months since series start.
+    const pre = vol.map((d, i) => ({ i, v: d.commits, key: d.key })).filter((d) => d.key < CHATGPT);
+    const mx = d3.mean(pre, (d) => d.i), my = d3.mean(pre, (d) => d.v);
+    const slope = d3.sum(pre, (d) => (d.i - mx) * (d.v - my)) / d3.sum(pre, (d) => (d.i - mx) ** 2);
+    const intercept = my - slope * mx;
+    const trend = (i) => intercept + slope * i;
+    vol.forEach((d, i) => {
+      d.trend = trend(i);
+      d.yoy = i >= 12 ? d.commits / vol[i - 12].commits - 1 : null;
+      d.trendYoy = i >= 12 ? trend(i) / trend(i - 12) - 1 : null;
+      d.perActor = d.actors ? d.commits / d.actors : null;
+      d.perCum = d.cum ? d.commits / d.cum : null;
+    });
+
+    const first = vol[0], last = vol[vol.length - 1];
+    document.getElementById("span-label").textContent = `GH Archive public events · ${fmtMonth(first.date)} to ${fmtMonth(last.date)} · monthly`;
+
+    // ----- key figures -----
+    const aiByKey = new Map(aiRaw.map((r) => [ymKey(r.year_month), +r.ai_commit_count]));
+    const lastAi = aiByKey.get(last.key);
+    const figs = [
+      { label: "Commits, " + fmtMonth(last.date), value: fmtSI(last.commits), sub: "YoY " + (last.yoy != null ? fmtSignedPct(last.yoy) : "n/a") },
+      { label: "Above pre-ChatGPT trend", value: fmtSignedPct(last.commits / last.trend - 1), sub: "vs linear fit, " + fmtMonth(first.date) + " to Oct 2022" },
+      { label: "Commits per active contributor", value: fmtDec(last.perActor), sub: fmtSI(last.actors) + " active accounts" },
+      { label: "AI/ML-named repo share", value: lastAi != null ? fmtPct2(lastAi / last.commits) : "n/a", sub: "approximate name match" },
+    ];
+    const figEl = document.getElementById("figures");
+    for (const f of figs) {
+      const box = el("div", "figure");
+      box.append(el("span", "label", f.label), el("span", "value", f.value), el("span", "sub", f.sub));
+      figEl.append(box);
+    }
+
+    // ----- milestone key -----
+    const mk = document.getElementById("milestone-key");
+    milestones.forEach((m, i) => {
+      const it = el("span", "item");
+      it.append(el("span", "key-ms", String(i + 1)), el("span", null, m.label), el("span", "when", fmtMonth(m.date)));
+      mk.append(it);
+    });
+
+    // ----- headline chart -----
+    const VIEWS = {
+      absolute: {
+        caption: "Total commits pushed to public repositories each month.",
+        series: [{ id: "c", label: "Commits", color: "var(--s1)", area: true, values: vol.map((d) => ({ date: d.date, v: d.commits })) }],
+        yTick: fmtSI, yVal: (v) => fmtInt(Math.round(v)),
+        table: [{ label: "Commits", fmt: (d) => fmtInt(d.commits) }],
+      },
+      per_actor: {
+        caption: "Commits divided by the number of distinct accounts active that month. If this rises, output per developer is rising, not just headcount.",
+        series: [{ id: "p", label: "Commits per active contributor", color: "var(--s1)", values: vol.map((d) => ({ date: d.date, v: d.perActor })) }],
+        yTick: d3.format(".0f"), yVal: fmtDec, includeZero: false,
+        extra: (t, d, i) => t.append(el("div", "tt-note", fmtInt(vol[i].commits) + " commits / " + fmtInt(vol[i].actors) + " active")),
+        table: [{ label: "Commits", fmt: (d) => fmtInt(d.commits) }, { label: "Active contributors", fmt: (d) => fmtInt(d.actors) }, { label: "Per contributor", fmt: (d) => fmtDec(d.perActor) }],
+      },
+      normalized: {
+        caption: "Commits divided by the cumulative count of accounts first seen since January 2015. Early months are inflated because that count starts near zero, so compare the shape after about 2017.",
+        series: [{ id: "n", label: "Commits per cumulative user", color: "var(--s1)", values: vol.map((d) => ({ date: d.date, v: d.perCum })) }],
+        yTick: d3.format(".2~f"), yVal: d3.format(",.3f"),
+        extra: (t, d, i) => t.append(el("div", "tt-note", fmtInt(vol[i].commits) + " commits / " + (vol[i].cum != null ? fmtInt(vol[i].cum) : "n/a") + " cumulative users")),
+        table: [{ label: "Commits", fmt: (d) => fmtInt(d.commits) }, { label: "Cumulative users", fmt: (d) => d.cum != null ? fmtInt(d.cum) : "n/a" }, { label: "Per cumulative user", fmt: (d) => d.perCum != null ? d3.format(",.3f")(d.perCum) : "n/a" }],
+      },
+      yoy: {
+        caption: "Year-over-year change in commits (solid) against the growth rate implied by a straight-line fit to monthly commits before November 2022 (dashed). The gap after late 2022 is growth the old trend does not explain.",
+        series: [
+          { id: "y", label: "Actual YoY", color: "var(--s1)", values: vol.map((d) => ({ date: d.date, v: d.yoy })).slice(12) },
+          { id: "t", label: "Pre-2022 trend", color: "var(--ref)", dashed: true, values: vol.map((d) => ({ date: d.date, v: d.trendYoy })).slice(12) },
+        ],
+        yTick: d3.format(".0%"), yVal: fmtSignedPct,
+        extra: (t, d, i) => { const r = vol[i + 12]; t.append(el("div", "tt-note", fmtInt(r.commits) + " actual vs " + fmtInt(Math.round(r.trend)) + " trend commits")); },
+        table: [{ label: "Commits", fmt: (d) => fmtInt(d.commits) }, { label: "Trend commits", fmt: (d) => fmtInt(Math.round(d.trend)) }, { label: "Actual YoY", fmt: (d) => d.yoy != null ? fmtSignedPct(d.yoy) : "n/a" }, { label: "Trend YoY", fmt: (d) => d.trendYoy != null ? fmtSignedPct(d.trendYoy) : "n/a" }],
+      },
+    };
+    let view = "absolute";
+    function readStore(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+    function writeStore(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* storage unavailable */ } }
+    if (VIEWS[readStore("ai-impact-view")]) view = readStore("ai-impact-view");
+
+    const volChart = document.getElementById("volume-chart");
+    function renderVolume() {
+      const v = VIEWS[view];
+      document.querySelectorAll("#view-toggle button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.view === view)));
+      document.getElementById("view-caption").textContent = v.caption;
+      lineChart(volChart, {
+        series: v.series, yTick: v.yTick, yVal: v.yVal, includeZero: v.includeZero, milestones, height: 340,
+        extraTip: v.extra, ariaLabel: "Monthly commit volume, " + v.series[0].label,
+      });
+      renderLegend(document.getElementById("volume-legend"), v.series.length > 1
+        ? v.series.map((s) => ({ label: s.label, color: s.color, dashed: s.dashed }))
+        : []);
+      renderTable(document.getElementById("volume-table"), [{ label: "Month", fmt: (d) => d.key }, ...v.table], vol);
+    }
+    document.getElementById("view-toggle").addEventListener("click", (e) => {
+      const b = e.target.closest("button[data-view]");
+      if (!b) return;
+      view = b.dataset.view;
+      writeStore("ai-impact-view", view);
+      renderVolume();
+    });
+
+    // ----- language -----
+    const langTotals = d3.rollup(langRaw, (v) => d3.sum(v, (r) => +r.commit_count), (r) => r.language);
+    const ranked = [...langTotals].filter(([l]) => l !== "Unknown").sort((a, b) => b[1] - a[1]).map(([l]) => l);
+    const top8 = ranked.slice(0, 8);
+    const langColor = new Map(top8.map((l, i) => [l, SLOTS[i]])); // colour follows the language, fixed by overall rank
+    const byMonth = d3.group(langRaw, (r) => ymKey(r.year_month));
+    const langMonths = [...byMonth.keys()].sort();
+    let topN = 5;
+    const storedN = +readStore("ai-impact-topn");
+    if ([3, 5, 8].includes(storedN)) topN = storedN;
+    function renderLanguage() {
+      document.querySelectorAll("#topn-toggle button").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.n === topN)));
+      const shown = top8.slice(0, topN);
+      const keys = [
+        ...shown.map((l) => ({ id: l, label: l, color: langColor.get(l) })),
+        { id: "__other", label: "Other languages", color: "var(--other)" },
+        { id: "Unknown", label: "Unknown (not in snapshot)", color: "var(--unknown)" },
+      ];
+      const rows = langMonths.map((k) => {
+        const recs = byMonth.get(k);
+        const total = d3.sum(recs, (r) => +r.commit_count);
+        const row = { date: parseYM(k), key: k, _total: total, __other: 0, Unknown: 0 };
+        shown.forEach((l) => (row[l] = 0));
+        for (const r of recs) {
+          const share = total ? +r.commit_count / total : 0;
+          if (r.language === "Unknown") row.Unknown += share;
+          else if (shown.includes(r.language)) row[r.language] += share;
+          else row.__other += share;
+        }
+        return row;
+      });
+      stackedShare(document.getElementById("language-chart"), { rows, keys, milestones, ariaLabel: "Language share of monthly commits, top " + topN });
+      renderLegend(document.getElementById("language-legend"), keys.map((k) => ({ kind: "rect", label: k.label, color: k.color })));
+      renderTable(document.getElementById("language-table"), [{ label: "Month", fmt: (r) => r.key }, ...keys.map((k) => ({ label: k.label, fmt: (r) => fmtPct1(r[k.id]) }))], rows);
+    }
+    document.getElementById("topn-toggle").addEventListener("click", (e) => {
+      const b = e.target.closest("button[data-n]");
+      if (!b) return;
+      topN = +b.dataset.n;
+      writeStore("ai-impact-topn", String(topN));
+      renderLanguage();
+    });
+
+    // ----- AI / ML -----
+    const ai = aiRaw.map((r) => {
+      const key = ymKey(r.year_month), v = volByKey.get(key), c = +r.ai_commit_count;
+      return { key, date: parseYM(r.year_month), c, total: v ? v.commits : null, share: v && v.commits ? c / v.commits : null };
+    }).sort((a, b) => a.date - b.date);
+    function renderAi() {
+      lineChart(document.getElementById("ai-abs-chart"), {
+        series: [{ id: "a", label: "Matched-repo commits", color: "var(--s3)", area: true, values: ai.map((d) => ({ date: d.date, v: d.c })) }],
+        yTick: fmtSI, yVal: (v) => fmtInt(v), milestones, height: 260, directLabels: false, ariaLabel: "Commits to AI/ML-named repositories",
+      });
+      lineChart(document.getElementById("ai-share-chart"), {
+        series: [{ id: "s", label: "Share of commits", color: "var(--s3)", area: true, values: ai.map((d) => ({ date: d.date, v: d.share })) }],
+        yTick: d3.format(".1%"), yVal: fmtPct2, milestones, height: 260, directLabels: false, ariaLabel: "AI/ML-named repositories' share of all commits",
+        extraTip: (t, d, i) => t.append(el("div", "tt-note", fmtInt(ai[i].c) + " of " + (ai[i].total != null ? fmtInt(ai[i].total) : "n/a") + " commits")),
+      });
+      renderTable(document.getElementById("ai-table"), [
+        { label: "Month", fmt: (d) => d.key }, { label: "Matched commits", fmt: (d) => fmtInt(d.c) },
+        { label: "All commits", fmt: (d) => d.total != null ? fmtInt(d.total) : "n/a" }, { label: "Share", fmt: (d) => d.share != null ? fmtPct2(d.share) : "n/a" },
+      ], ai);
+    }
+
+    // ----- users -----
+    const users = actRaw.map((r) => ({ key: ymKey(r.year_month), date: parseYM(r.year_month), newc: +r.new_actor_count, cum: +r.cumulative_total }))
+      .sort((a, b) => a.date - b.date);
+    const inRange = userMs.filter((m) => m.date >= users[0].date && m.date <= users[users.length - 1].date);
+    function renderUsers() {
+      lineChart(document.getElementById("users-chart"), {
+        series: [{ id: "u", label: "Accounts seen since 2015", color: "var(--s1)", values: users.map((d) => ({ date: d.date, v: d.cum })) }],
+        yTick: fmtSI, yVal: (v) => fmtInt(v), milestones, height: 320, ariaLabel: "Cumulative accounts seen in public events",
+        refPoints: inRange.map((m) => ({ date: m.date, v: m.users * 1e6, label: m.users + "M", detail: m.source })),
+        extraTip: (t, d, i) => t.append(el("div", "tt-note", "+" + fmtInt(users[i].newc) + " new that month")),
+      });
+      renderLegend(document.getElementById("users-legend"), [
+        { label: "Accounts first seen in public events, cumulative (derived from GH Archive)", color: "var(--s1)" },
+        { kind: "diamond", label: "GitHub's published developer count (external reference; hover for source)" },
+      ]);
+      renderTable(document.getElementById("users-table"), [
+        { label: "Month", fmt: (d) => d.key }, { label: "New accounts", fmt: (d) => fmtInt(d.newc) }, { label: "Cumulative", fmt: (d) => fmtInt(d.cum) },
+      ], users);
+    }
+
+    function renderAll() { renderVolume(); renderLanguage(); renderAi(); renderUsers(); }
+    renderAll();
+    let lastW = document.querySelector(".wrap").clientWidth, raf = 0;
+    new ResizeObserver(() => {
+      const w = document.querySelector(".wrap").clientWidth;
+      if (w === lastW) return;
+      lastW = w;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => { hideTip(); renderAll(); });
+    }).observe(document.querySelector(".wrap"));
+  }
+
+  main().catch((err) => {
+    const box = el("div", "load-error");
+    box.append(el("strong", null, "The report data could not be loaded. "),
+      el("span", null, "Check that the data/ files were published next to this page. Details: " + (err && err.message ? err.message : String(err))));
+    document.getElementById("figures").replaceWith(box);
+    console.error(err);
+  });
+})();
+</script>
