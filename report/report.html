@@ -308,7 +308,7 @@ footer { color: var(--muted); font-size: 13px; max-width: 80ch; }
     <div class="caveat" role="note">
       <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 7v4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="4.6" r="1" fill="currentColor"/></svg>
       <div>
-        <p><strong>This is an approximate, name-based match.</strong> A repository counts if its name contains a keyword from <code>config/ai_ml_keywords.yaml</code> (pytorch, tensorflow, huggingface, langchain, openai, llama, copilot and others). It misses AI projects without a keyword in the name and catches some unrelated ones, so treat it as a trend signal, not a full count.</p>
+        <p><strong>This is an approximate, name-based match.</strong> A repository counts if its name (not its owner's) contains a keyword, as a separate word, from <code>config/ai_ml_keywords.yaml</code> (pytorch, tensorflow, huggingface, langchain, openai, llama, copilot and others). It misses AI projects without a keyword in the name and catches some unrelated ones, so treat it as a trend signal, not a full count.</p>
       </div>
     </div>
     <div class="grid-2">
@@ -327,12 +327,12 @@ footer { color: var(--muted); font-size: 13px; max-width: 80ch; }
   <section class="panel" id="users" aria-labelledby="users-h">
     <div class="panel-head">
       <h2 id="users-h">Size of the user base</h2>
-      <p>The line counts distinct accounts seen in public events for the first time, added up from January 2015. The diamonds are GitHub's own published developer counts, which include private-only accounts. They are reference points from outside this dataset, so the two will not match.</p>
+      <p>The line counts distinct accounts seen in public events for the first time, added up from the start of GH Archive in 2011 and shown from January 2015. The diamonds are GitHub's own published developer counts, which include private-only accounts. They are reference points from outside this dataset, so the two will not match.</p>
     </div>
     <div class="caveat" role="note">
       <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 7v4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="4.6" r="1" fill="currentColor"/></svg>
       <div>
-        <p><strong>Accounts first active before 2015 are never counted.</strong> The line only adds an account in the month it first appears, and only from January 2015 on. Anyone whose first public activity came earlier is left out at every point in the series, so the line sits below the true user base by a fixed amount throughout, not only in the early years.</p>
+        <p><strong>Accounts with no public activity since early 2011 are not counted.</strong> The count is built from GH Archive's first month (February 2011), so accounts that joined before 2015 are already included when the line starts. Only accounts whose public activity ended before GH Archive began are missing. That is a small group next to the user base shown here, so the line sits slightly below the true total by roughly the same amount throughout.</p>
       </div>
     </div>
     <div class="chart" id="users-chart"></div>
@@ -359,6 +359,9 @@ footer { color: var(--muted); font-size: 13px; max-width: 80ch; }
   // ---------- helpers ----------
   const ymKey = (s) => String(s).replace("-", "").trim();
   const parseYM = (s) => { const k = ymKey(s); return new Date(Date.UTC(+k.slice(0, 4), +k.slice(4, 6) - 1, 1)); };
+  // Calendar month count for a "YYYYMM" key, and a key shifted by n months (handles year rollover).
+  const monthIndex = (k) => +k.slice(0, 4) * 12 + (+k.slice(4, 6) - 1);
+  const shiftYM = (k, n) => { const m = monthIndex(k) + n; return String(Math.floor(m / 12)) + String((m % 12) + 1).padStart(2, "0"); };
   const fmtMonth = d3.utcFormat("%b %Y");
   const fmtInt = d3.format(",");
   const fmtSI = (v) => {
@@ -674,16 +677,21 @@ footer { color: var(--muted); font-size: 13px; max-width: 80ch; }
     vol.forEach((d) => { const a = actByKey.get(d.key); d.cum = a ? a.cum : null; });
     const volByKey = new Map(vol.map((d) => [d.key, d]));
 
-    // Pre-ChatGPT linear trend on commit_count, x = months since series start.
-    const pre = vol.map((d, i) => ({ i, v: d.commits, key: d.key })).filter((d) => d.key < CHATGPT);
-    const mx = d3.mean(pre, (d) => d.i), my = d3.mean(pre, (d) => d.v);
-    const slope = d3.sum(pre, (d) => (d.i - mx) * (d.v - my)) / d3.sum(pre, (d) => (d.i - mx) ** 2);
+    // Pre-ChatGPT linear trend on commit_count, x = calendar months since series start.
+    // Both x and the YoY comparison month come from the year_month key, not array
+    // position, so a missing month leaves a gap instead of shifting everything after it.
+    const x0 = monthIndex(vol[0].key);
+    vol.forEach((d) => { d.x = monthIndex(d.key) - x0; });
+    const pre = vol.filter((d) => d.key < CHATGPT);
+    const mx = d3.mean(pre, (d) => d.x), my = d3.mean(pre, (d) => d.commits);
+    const slope = d3.sum(pre, (d) => (d.x - mx) * (d.commits - my)) / d3.sum(pre, (d) => (d.x - mx) ** 2);
     const intercept = my - slope * mx;
-    const trend = (i) => intercept + slope * i;
-    vol.forEach((d, i) => {
-      d.trend = trend(i);
-      d.yoy = i >= 12 ? d.commits / vol[i - 12].commits - 1 : null;
-      d.trendYoy = i >= 12 ? trend(i) / trend(i - 12) - 1 : null;
+    const trend = (x) => intercept + slope * x;
+    vol.forEach((d) => {
+      const prior = volByKey.get(shiftYM(d.key, -12));
+      d.trend = trend(d.x);
+      d.yoy = prior && prior.commits ? d.commits / prior.commits - 1 : null;
+      d.trendYoy = d.x >= 12 ? trend(d.x) / trend(d.x - 12) - 1 : null;
       d.perActor = d.actors ? d.commits / d.actors : null;
       d.perCum = d.cum ? d.commits / d.cum : null;
     });
@@ -716,6 +724,9 @@ footer { color: var(--muted); font-size: 13px; max-width: 80ch; }
     });
 
     // ----- headline chart -----
+    // YoY view starts 12 calendar months after the series start; a month whose
+    // prior-year month is missing keeps yoy = null and draws as a gap.
+    const yoyRows = vol.filter((d) => d.trendYoy != null);
     const VIEWS = {
       absolute: {
         caption: "Total commits pushed to public repositories each month.",
@@ -731,7 +742,7 @@ footer { color: var(--muted); font-size: 13px; max-width: 80ch; }
         table: [{ label: "Commits", fmt: (d) => fmtInt(d.commits) }, { label: "Active contributors", fmt: (d) => fmtInt(d.actors) }, { label: "Per contributor", fmt: (d) => fmtDec(d.perActor) }],
       },
       normalized: {
-        caption: "Commits divided by the cumulative count of accounts first seen in public events since January 2015. Anyone active on GitHub before then is never added to this count, at any point in the series, so the true developer base is understated throughout. The ratio is also extreme in the first months, when the count starts near zero.",
+        caption: "Commits divided by the cumulative count of accounts first seen in public events. The count runs from the start of GH Archive in 2011, so accounts that joined before 2015 are included. Only accounts with no public activity since early 2011 are missing, a small group next to the user base in this period.",
         series: [{ id: "n", label: "Commits per cumulative user", color: "var(--s1)", values: vol.map((d) => ({ date: d.date, v: d.perCum })) }],
         yTick: d3.format(".2~f"), yVal: d3.format(",.3f"),
         extra: (t, d, i) => t.append(el("div", "tt-note", fmtInt(vol[i].commits) + " commits / " + (vol[i].cum != null ? fmtInt(vol[i].cum) : "n/a") + " cumulative users")),
@@ -740,11 +751,11 @@ footer { color: var(--muted); font-size: 13px; max-width: 80ch; }
       yoy: {
         caption: "Year-over-year change in commits (solid) against the growth rate implied by a straight-line fit to monthly commits before November 2022 (dashed). The gap after late 2022 is growth the old trend does not explain.",
         series: [
-          { id: "y", label: "Actual YoY", color: "var(--s1)", values: vol.map((d) => ({ date: d.date, v: d.yoy })).slice(12) },
-          { id: "t", label: "Pre-2022 trend", color: "var(--ref)", dashed: true, values: vol.map((d) => ({ date: d.date, v: d.trendYoy })).slice(12) },
+          { id: "y", label: "Actual YoY", color: "var(--s1)", values: yoyRows.map((d) => ({ date: d.date, v: d.yoy })) },
+          { id: "t", label: "Pre-2022 trend", color: "var(--ref)", dashed: true, values: yoyRows.map((d) => ({ date: d.date, v: d.trendYoy })) },
         ],
         yTick: d3.format(".0%"), yVal: fmtSignedPct,
-        extra: (t, d, i) => { const r = vol[i + 12]; t.append(el("div", "tt-note", fmtInt(r.commits) + " actual vs " + fmtInt(Math.round(r.trend)) + " trend commits")); },
+        extra: (t, d, i) => { const r = yoyRows[i]; t.append(el("div", "tt-note", fmtInt(r.commits) + " actual vs " + fmtInt(Math.round(r.trend)) + " trend commits")); },
         table: [{ label: "Commits", fmt: (d) => fmtInt(d.commits) }, { label: "Trend commits", fmt: (d) => fmtInt(Math.round(d.trend)) }, { label: "Actual YoY", fmt: (d) => d.yoy != null ? fmtSignedPct(d.yoy) : "n/a" }, { label: "Trend YoY", fmt: (d) => d.trendYoy != null ? fmtSignedPct(d.trendYoy) : "n/a" }],
       },
     };
@@ -845,7 +856,7 @@ footer { color: var(--muted); font-size: 13px; max-width: 80ch; }
     const inRange = userMs.filter((m) => m.date >= users[0].date && m.date <= users[users.length - 1].date);
     function renderUsers() {
       lineChart(document.getElementById("users-chart"), {
-        series: [{ id: "u", label: "Accounts seen since 2015", color: "var(--s1)", values: users.map((d) => ({ date: d.date, v: d.cum })) }],
+        series: [{ id: "u", label: "Cumulative accounts seen", color: "var(--s1)", values: users.map((d) => ({ date: d.date, v: d.cum })) }],
         yTick: fmtSI, yVal: (v) => fmtInt(v), milestones, height: 320, ariaLabel: "Cumulative accounts seen in public events",
         refPoints: inRange.map((m) => ({ date: m.date, v: m.users * 1e6, label: m.users + "M", detail: m.source })),
         extraTip: (t, d, i) => t.append(el("div", "tt-note", "+" + fmtInt(users[i].newc) + " new that month")),
