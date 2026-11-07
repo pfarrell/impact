@@ -1,0 +1,24 @@
+# Known problems in GH Archive's own collection, found from its daily event
+# counts on 2026-11-07 (COUNT(*) per githubarchive.day.* table, 2021-01 on).
+# The pipeline keeps every month in data/; the report reads this file to
+# decide what to show and what to leave out of trend and YoY calculations.
+
+# Months after this are not shown. GH Archive's daily volume fell from
+# ~3.25M events/day (Aug 2026) to ~1.8M (Sep), ~0.85M (Oct) and ~0.12M
+# (early Nov). Move this forward if collection recovers.
+last_reliable_month: "2026-07"
+
+# Months shown as a break in the line and excluded from the trend fit and
+# from YoY comparisons.
+gap_months:
+  - month: "2021-10"
+    note: "GH Archive is missing 3 days and 9 more are at about a third of normal volume."
+  - month: "2025-10"
+    note: "6 days in GH Archive are at well under half of normal volume."
+
+# Lasting shifts in collection. Comparisons that cross one (YoY, trend) are
+# not like-for-like, so the report marks the month and doesn't compute YoY
+# across it.
+source_breaks:
+  - month: "2025-06"
+    note: "GH Archive's daily event count drops about 30% in one step and stays there. This looks like a change in collection, not a real fall in activity."

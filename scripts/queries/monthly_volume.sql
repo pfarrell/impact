@@ -1,11 +1,12 @@
+-- Reads only type, repo.id and actor.id. Never read `payload` here: it holds
+-- nearly all of GH Archive's bytes, and reading it multiplied the backfill
+-- cost ~100x. Pushes stand in for commits (payload.size), and all
+-- PullRequestEvents (opened, closed, reopened, ...) stand in for PRs opened
+-- (payload.action).
 SELECT
   _TABLE_SUFFIX AS year_month,
   COUNTIF(type = 'PushEvent') AS push_count,
-  SUM(IF(type = 'PushEvent',
-         CAST(JSON_EXTRACT_SCALAR(payload, '$.size') AS INT64),
-         0)) AS commit_count,
-  COUNTIF(type = 'PullRequestEvent'
-          AND JSON_EXTRACT_SCALAR(payload, '$.action') = 'opened') AS pr_opened_count,
+  COUNTIF(type = 'PullRequestEvent') AS pr_event_count,
   COUNT(DISTINCT IF(type = 'PushEvent', repo.id, NULL)) AS active_repo_count,
   COUNT(DISTINCT IF(type = 'PushEvent', actor.id, NULL)) AS active_actor_count
 FROM `githubarchive.month.*`

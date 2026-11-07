@@ -92,10 +92,22 @@ normalize volume metrics:
 ### Primary volume/velocity metrics (absolute, for scale/context)
 
 - Monthly push count
-- Monthly commit count (sum of push event `payload.size`)
-- Monthly PRs opened
+- ~~Monthly commit count (sum of push event `payload.size`)~~
+- Monthly PR events (all `PullRequestEvent` actions; was "PRs opened")
 - Monthly active repos (distinct repos with a push in the month)
 - Monthly active contributors (distinct actors with a push in the month)
+
+> **Revised 2026-11-07: pushes, not commits.** The first backfill dry run
+> priced the original queries at ~95 TB scanned (~$540): commit counts
+> (`payload.size`) and PR actions (`payload.action`) both live in GH
+> Archive's `payload` column, which holds nearly all of its bytes. All
+> queries now read only `type`/`repo`/`actor`, and every "commit" metric
+> below is computed on pushes instead (a test enforces no `payload` reads).
+> Separately, GitHub is understood to have announced in 2025 that PushEvent
+> payloads would stop carrying commit counts (not yet verified against the
+> data); if so, the commit series would have broken for recent months anyway.
+> The language and AI/ML queries were also merged into one scan, bringing
+> the backfill to ~830 GB so it fits the sandbox's 1 TiB/month free tier.
 
 ### Productivity / normalized metrics (the actual "AI impact" signal)
 
@@ -157,10 +169,9 @@ ai_impact/
   scripts/
     bq_client.py               # BigQuery auth (application-default credentials) + query runner
     queries/
-      monthly_volume.sql       # pushes, commits, PRs, active repos, active actors
+      monthly_volume.sql       # pushes, PR events, active repos, active actors
       cumulative_actors.sql    # first-seen actor_id -> running total
-      monthly_language.sql     # commit share by language
-      monthly_ai_topics.sql    # commit share by AI/ML-matched repos
+      monthly_language_ai.sql  # push share by language + AI/ML-matched repos (one scan)
     backfill.py                 # one-time: full 2015-01..latest-closed-month pull
     refresh.py                  # incremental: pulls only months after data/_meta.json's last month, appends
   data/

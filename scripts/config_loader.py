@@ -38,3 +38,30 @@ def load_milestones(path: Path = DEFAULT_MILESTONES_PATH) -> dict:
         if key not in data or not isinstance(data[key], list) or not data[key]:
             raise ValueError(f"{path}: expected a non-empty '{key}' list")
     return data
+
+
+DEFAULT_DATA_QUALITY_PATH = Path(__file__).resolve().parent.parent / "config" / "data_quality.yaml"
+_YEAR_MONTH = re.compile(r"^\d{4}-(0[1-9]|1[0-2])$")
+
+
+def _check_month(path: Path, where: str, value: object) -> str:
+    if not isinstance(value, str) or not _YEAR_MONTH.match(value):
+        raise ValueError(f"{path}: {where} must be a \"YYYY-MM\" string, got {value!r}")
+    return value
+
+
+def load_data_quality(path: Path = DEFAULT_DATA_QUALITY_PATH) -> dict:
+    """Loads known GH Archive collection problems: cutoff month, gap months, source breaks."""
+    data = yaml.safe_load(path.read_text()) or {}
+    result = {"last_reliable_month": _check_month(path, "last_reliable_month", data.get("last_reliable_month"))}
+    for key in ("gap_months", "source_breaks"):
+        entries = data.get(key)
+        if not isinstance(entries, list):
+            raise ValueError(f"{path}: expected a '{key}' list (it may be empty)")
+        checked = []
+        for i, entry in enumerate(entries):
+            if not isinstance(entry, dict) or not isinstance(entry.get("note"), str) or not entry["note"].strip():
+                raise ValueError(f"{path}: {key}[{i}] needs a 'month' and a non-empty 'note'")
+            checked.append({"month": _check_month(path, f"{key}[{i}].month", entry.get("month")), "note": entry["note"]})
+        result[key] = checked
+    return result

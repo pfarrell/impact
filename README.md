@@ -24,21 +24,30 @@ for the full design.
 
 ## Running the pipeline
 
-One-time full historical backfill. **This queries BigQuery for real and is
-not cheap.** Three of the four queries read GH Archive's `payload` column,
-which holds most of the dataset's bytes, and the tables aren't clustered by
-event type, so a full 2015–present backfill is likely TB-scale: on the order
-of **tens to low hundreds of dollars** at on-demand pricing, well past the
-1 TiB/month free tier.
+One-time full historical backfill. **This queries BigQuery for real.** The
+queries read only the small `type`, `repo` and `actor` columns of GH Archive
+and never the `payload` column, which holds nearly all of the dataset's
+bytes. (Reading `payload` for commit counts priced the backfill at ~95 TB /
+~$540, so the pipeline counts pushes instead of commits; a test enforces
+that no query reads `payload`.) The language mix and AI/ML-repo series
+share one query, so the whole backfill is ~830 GB: inside the 1 TiB/month
+free tier, so it runs on a project without billing (the BigQuery sandbox).
 
 ```
 python -m scripts.backfill
 ```
 
-Before querying anything, the backfill dry-runs all four queries (free),
+Before querying anything, the backfill dry-runs all three queries (free),
 prints the estimated GB scanned and approximate cost, and asks
 `Proceed? [y/N]`. Read that estimate before answering. Answering anything
 other than `y` exits without querying or writing.
+
+If the estimate is over the 1 TiB free tier, the backfill stops before the
+prompt: without billing, the query that crosses the limit fails after the
+earlier ones have used up the month's allowance. Real queries you've run in
+the project earlier in the month count against the same 1 TiB (dry runs
+don't). If billing is enabled and you accept the cost, override with
+`BQ_BILLING_ENABLED=1 python -m scripts.backfill`.
 
 Every real query is also capped server-side by `maximum_bytes_billed`, read
 from `BQ_MAX_BYTES_BILLED` (bytes, per query; default 2 TiB). A query that
@@ -61,3 +70,23 @@ python -m scripts.refresh
 
 Both write/update CSVs under `data/` and `data/_meta.json` (tracks the
 last refreshed month and cumulative bytes billed).
+
+## Data quality
+
+GH Archive's own collection has gaps (checked from its daily event counts
+in November 2026). `config/data_quality.yaml` records them, and the report
+reads it as `data/data_quality.json`:
+
+- `last_reliable_month`: months after this aren't shown (collection fell
+  off from August 2026).
+- `gap_months`: shown as breaks in the lines and left out of the trend fit
+  and year-over-year comparisons.
+- `source_breaks`: lasting collection changes (a ~30% step down in June
+  2025), marked on the charts; growth rates aren't compared across them.
+
+The CSVs under `data/` keep every month. After editing the config,
+`python -m scripts.report_config` rewrites the JSON without querying.
+
+Language mix was dropped from the report: `github_repos.languages` covers
+too few repositories (79% of 2015 pushes and 99.9% of 2026 pushes have no
+language). `monthly_language.csv` is still produced.
