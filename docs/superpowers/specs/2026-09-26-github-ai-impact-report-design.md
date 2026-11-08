@@ -1,5 +1,15 @@
 # GitHub AI Impact Report — Design
 
+> **Revision, 2026-11-07: main source changed to the GitHub Innovation Graph.**
+> A cross-check against GitHub's own bot-filtered Innovation Graph showed
+> that GH Archive's 2024 rise above trend was bot/automated activity and
+> that its collection broke down from mid-2025. The report now uses the
+> Innovation Graph (quarterly, 2020 onward, `scripts/innovation_graph.py`,
+> `config/innovation_graph.yaml`) for all headline figures, AI repository
+> topics and language mix. GH Archive (this document's original design) is
+> kept only for a comparison panel. Sections below describe the original
+> GH Archive design and are retained for history.
+
 ## Purpose
 
 Build a shareable, refreshable data report exploring the impact of AI (LLMs,

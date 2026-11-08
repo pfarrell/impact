@@ -23,6 +23,13 @@ llm_milestones:
     label: "GPT-4 released"
     # Released 2023-03-14. Source: OpenAI announcement; TechCrunch,
     # "OpenAI releases GPT-4, a multimodal AI...", March 14, 2023.
+  - date: "2025-05"
+    label: "Agentic coding tools (Claude Code GA, Copilot coding agent)"
+    # Verified via WebSearch on 2026-11-07. Claude Code became generally
+    # available 2025-05-22 (research preview from 2025-02-24), alongside
+    # Claude Opus 4 / Sonnet 4. GitHub Copilot coding agent entered public
+    # preview 2025-05-19 (GitHub changelog, "GitHub Copilot coding agent in
+    # public preview"; SiliconANGLE, May 19, 2025).
 
 github_user_milestones:
   # GitHub's own published headline figures. Reference points only --

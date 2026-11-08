@@ -1,4 +1,5 @@
-<title>Pushes in the LLM Era</title>
+<meta charset="utf-8">
+<title>GitHub in the LLM Era</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -13,13 +14,10 @@
   --axis: #c2c6c0;
   --border: rgba(17, 20, 19, 0.11);
   --ref: #5b605c;
+  --band: rgba(17, 20, 19, 0.045);
   --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
   --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7; --s8: #e34948;
-  --other: #aeb2ad;
-  --unknown: #d6d9d4;
-  --control-bg: #eceee9;
-  --control-on: #111413;
-  --control-on-ink: #fcfcfb;
+  --pos: #2a78d6; --neg: #eb6834;
   --warn-bg: #fff5d9;
   --warn-edge: #e3a008;
   --warn-ink: #4a3500;
@@ -35,10 +33,10 @@
     color-scheme: dark;
     --page: #0f1110; --surface: #1a1b1a; --ink: #f3f4f1; --ink-2: #c3c6bf; --muted: #8b8f8a;
     --grid: #2b2d2b; --axis: #3b3e3b; --border: rgba(255, 255, 255, 0.10); --ref: #a9ada7;
+    --band: rgba(255, 255, 255, 0.05);
     --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
     --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
-    --other: #6d716c; --unknown: #3a3d3a;
-    --control-bg: #242624; --control-on: #f3f4f1; --control-on-ink: #111413;
+    --pos: #3987e5; --neg: #d95926;
     --warn-bg: #2d2410; --warn-edge: #fab219; --warn-ink: #ffe3a3;
     --caveat-bg: #16202c; --caveat-edge: #3a5a82; --caveat-ink: #d4e2f3;
   }
@@ -47,16 +45,17 @@
   color-scheme: dark;
   --page: #0f1110; --surface: #1a1b1a; --ink: #f3f4f1; --ink-2: #c3c6bf; --muted: #8b8f8a;
   --grid: #2b2d2b; --axis: #3b3e3b; --border: rgba(255, 255, 255, 0.10); --ref: #a9ada7;
+  --band: rgba(255, 255, 255, 0.05);
   --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
   --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
-  --other: #6d716c; --unknown: #3a3d3a;
-  --control-bg: #242624; --control-on: #f3f4f1; --control-on-ink: #111413;
+  --pos: #3987e5; --neg: #d95926;
   --warn-bg: #2d2410; --warn-edge: #fab219; --warn-ink: #ffe3a3;
   --caveat-bg: #16202c; --caveat-edge: #3a5a82; --caveat-ink: #d4e2f3;
 }
 
 * { box-sizing: border-box; }
 body {
+  margin: 0;
   background: var(--page);
   color: var(--ink);
   font-family: var(--font-sans);
@@ -83,7 +82,7 @@ p { margin: 0; }
   text-transform: uppercase;
   color: var(--ink-2);
 }
-.lede { max-width: 66ch; color: var(--ink-2); font-size: 16px; }
+.lede { max-width: 68ch; color: var(--ink-2); font-size: 16px; }
 header.top { display: grid; gap: 12px; }
 code, .mono { font-family: var(--font-mono); font-size: 0.9em; }
 
@@ -99,8 +98,13 @@ code, .mono { font-family: var(--font-mono); font-size: 0.9em; }
 }
 .figure { background: var(--surface); padding: 14px 18px; display: grid; gap: 2px; align-content: start; }
 .figure .label { font-size: 13px; color: var(--ink-2); }
-.figure .value { font-family: var(--font-cond); font-size: 30px; font-weight: 600; line-height: 1.15; }
+.figure .value { font-family: var(--font-cond); font-size: 30px; font-weight: 600; line-height: 1.15; font-variant-numeric: tabular-nums; }
 .figure .sub { font-size: 12px; color: var(--muted); font-family: var(--font-mono); }
+
+/* Findings */
+.findings { display: grid; gap: 10px; max-width: 75ch; }
+.findings ol { margin: 0; padding-left: 22px; display: grid; gap: 8px; }
+.findings li::marker { font-family: var(--font-mono); color: var(--muted); }
 
 /* Sections */
 section.panel {
@@ -113,32 +117,8 @@ section.panel {
   min-width: 0;
 }
 .panel-head { display: grid; gap: 6px; }
-.panel-head p { color: var(--ink-2); max-width: 70ch; }
-.controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
-.controls .ctl-label { font-size: 13px; color: var(--ink-2); }
-.seg {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 2px;
-  padding: 3px;
-  background: var(--control-bg);
-  border-radius: 8px;
-}
-.seg button {
-  font: inherit;
-  font-size: 13px;
-  font-weight: 500;
-  border: 0;
-  background: transparent;
-  color: var(--ink-2);
-  padding: 6px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.seg button:hover { color: var(--ink); background: var(--border); }
-.seg button[aria-pressed="true"] { background: var(--control-on); color: var(--control-on-ink); }
+.panel-head p { color: var(--ink-2); max-width: 72ch; }
 button:focus-visible, [tabindex]:focus-visible, summary:focus-visible { outline: 2px solid var(--s1); outline-offset: 2px; }
-.view-caption { color: var(--ink-2); font-size: 14px; max-width: 75ch; min-height: 3em; }
 
 .chart { width: 100%; min-width: 0; position: relative; }
 .chart svg { display: block; overflow: visible; }
@@ -146,7 +126,10 @@ button:focus-visible, [tabindex]:focus-visible, summary:focus-visible { outline:
 .chart .tick line { stroke: var(--grid); }
 .chart .domain { stroke: none; }
 .chart .baseline { stroke: var(--axis); }
+.chart .zero { stroke: var(--ink-2); stroke-width: 1; }
 .chart .direct-label { font-family: var(--font-sans); font-size: 12px; fill: var(--ink-2); font-weight: 500; }
+.chart .band rect { fill: var(--band); }
+.chart .band text { font-family: var(--font-sans); font-size: 11px; fill: var(--muted); }
 .chart .ms-line { stroke: var(--ref); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0.7; }
 .chart .ms-flag circle { fill: var(--surface); stroke: var(--ref); stroke-width: 1.25; }
 .chart .ms-flag text { fill: var(--ink); font-size: 10px; font-weight: 500; }
@@ -155,19 +138,18 @@ button:focus-visible, [tabindex]:focus-visible, summary:focus-visible { outline:
 .chart .brk-flag path { fill: var(--warn-bg); stroke: var(--warn-edge); stroke-width: 1.25; }
 .chart .brk-flag text { fill: var(--warn-ink); font-size: 10px; font-weight: 600; }
 .chart .crosshair { stroke: var(--ink-2); stroke-width: 1; }
-.chart .ref-label { font-family: var(--font-mono); font-size: 11px; fill: var(--ink); font-weight: 500; }
+.chart .bar-hl { fill: var(--ink); opacity: 0.08; }
 
 .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--ink-2); }
 .legend .item { display: inline-flex; align-items: center; gap: 6px; }
 .legend .key-line { width: 18px; height: 0; border-top: 2px solid; }
 .legend .key-line.dashed { border-top-style: dashed; }
 .legend .key-rect { width: 12px; height: 12px; border-radius: 3px; }
-.legend .key-diamond { width: 9px; height: 9px; transform: rotate(45deg); border: 2px solid var(--ink); background: var(--surface); margin-inline: 2px; }
-.legend .key-ms { width: 16px; height: 16px; border-radius: 50%; border: 1.25px solid var(--ref); font-family: var(--font-mono); font-size: 10px; display: inline-grid; place-items: center; color: var(--ink); }
 
 .milestone-key { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--ink-2); }
 .milestone-key .item { display: inline-flex; gap: 6px; align-items: center; }
-.milestone-key .key-brk { width: 16px; height: 16px; display: inline-grid; place-items: center; font-family: var(--font-mono); font-size: 10px; font-weight: 600; color: var(--warn-ink); background: var(--warn-bg); border: 1.25px solid var(--warn-edge); border-radius: 3px; }
+.milestone-key .key-ms { width: 16px; height: 16px; border-radius: 50%; border: 1.25px solid var(--ref); font-family: var(--font-mono); font-size: 10px; display: inline-grid; place-items: center; color: var(--ink); flex: none; }
+.milestone-key .key-brk { width: 16px; height: 16px; display: inline-grid; place-items: center; font-family: var(--font-mono); font-size: 10px; font-weight: 600; color: var(--warn-ink); background: var(--warn-bg); border: 1.25px solid var(--warn-edge); border-radius: 3px; flex: none; }
 .milestone-key .when { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
 
 .caveat {
@@ -189,6 +171,7 @@ button:focus-visible, [tabindex]:focus-visible, summary:focus-visible { outline:
 
 .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
 .grid-2 > div { display: grid; gap: 8px; min-width: 0; align-content: start; }
+.grid-2 .note { font-size: 13px; color: var(--ink-2); }
 
 details.table-view { font-size: 13px; }
 details.table-view summary { cursor: pointer; color: var(--ink-2); width: max-content; }
@@ -223,96 +206,109 @@ details.table-view summary { cursor: pointer; color: var(--ink-2); width: max-co
 .tooltip .tt-note { color: var(--ink-2); font-size: 12px; border-top: 1px solid var(--grid); padding-top: 4px; }
 
 .load-error { padding: 16px; border: 2px solid var(--s8); border-radius: 8px; }
-footer { color: var(--muted); font-size: 13px; max-width: 80ch; }
+footer { color: var(--muted); font-size: 13px; max-width: 80ch; display: grid; gap: 6px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
 <div class="wrap">
   <header class="top">
-    <div class="eyebrow" id="span-label">GH Archive public events, monthly</div>
-    <h1>Pushes in the LLM Era</h1>
-    <p class="lede">Public GitHub push activity, month by month, set against the release dates of the tools that brought large language models into everyday coding. Four views of the same series ask whether output rose after late 2022, and whether the rise holds once you account for more people on the platform.</p>
+    <div class="eyebrow" id="span-label">GitHub Innovation Graph · quarterly</div>
+    <h1>GitHub in the LLM Era</h1>
+    <p class="lede">How much code developers push to public GitHub repositories each quarter, measured against the trend before ChatGPT. The source is GitHub's own Innovation Graph, which leaves out bots and accounts too active to be one person.</p>
   </header>
-
-  <div class="caveat" role="note" id="data-notes">
-    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 7v4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="4.6" r="1" fill="currentColor"/></svg>
-    <div>
-      <p><strong>Gaps in the source data.</strong> GH Archive records GitHub's public event feed, and its own collection has gaps. The series is shaped around them:</p>
-      <ul id="data-notes-list"></ul>
-    </div>
-  </div>
 
   <div class="figures" id="figures" aria-label="Key figures"></div>
 
-  <section class="panel" id="volume" aria-labelledby="volume-h">
+  <div class="findings">
+    <h2>What the data shows</h2>
+    <ol id="findings-list"></ol>
+  </div>
+
+  <div class="caveat" role="note">
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 7v4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="4.6" r="1" fill="currentColor"/></svg>
+    <div>
+      <p><strong>How far to trust this.</strong></p>
+      <ul>
+        <li>Public activity only. Private repositories, where most company code lives, are not counted.</li>
+        <li>An AI agent that pushes through a person's own account counts as that person's pushes, so the rise from 2025 likely includes work done by agents. That is arguably the effect being measured, but it is not the same as people doing more work.</li>
+        <li>The pre-ChatGPT baseline is only 12 quarters (2020 to 2022) and includes the 2020 lockdown surge, so the trend line is an approximate yardstick.</li>
+        <li>GitHub documents no change of method, and earlier quarters are identical in every release since January 2025. A change to GitHub's own bot filter could not be ruled out from outside.</li>
+        <li>Figures are sums over economies. GitHub withholds an economy's number when fewer than 100 developers did that activity, so the totals run slightly low.</li>
+      </ul>
+    </div>
+  </div>
+
+  <section class="panel" id="pushes" aria-labelledby="pushes-h">
     <div class="panel-head">
-      <h2 id="volume-h">Monthly push volume</h2>
-      <p>Pushes to public repositories each month (PushEvents in GH Archive). Numbered markers are LLM and coding-assistant releases.</p>
+      <h2 id="pushes-h">Pushes against the pre-ChatGPT trend</h2>
+      <p>Git pushes to public repositories each quarter (solid), and the growth path implied by 2020 to 2022 extended forward (dashed). The shaded quarters are the baseline the trend is fitted to.</p>
     </div>
-    <div class="caveat" role="note">
-      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 7v4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="4.6" r="1" fill="currentColor"/></svg>
-      <div>
-        <p><strong>This page counts pushes, not commits.</strong> One push can carry one commit or many. Commit counts live in GH Archive's event payload, which holds most of the dataset's bytes, so reading them would cost about 100 times as much to query. Pushes track the same activity at a coarser grain, so read changes in level and trend rather than treating a push as one unit of work.</p>
-      </div>
-    </div>
-    <div class="controls">
-      <span class="ctl-label" id="view-label">View</span>
-      <div class="seg" role="group" aria-labelledby="view-label" id="view-toggle">
-        <button type="button" id="view-absolute" data-view="absolute" aria-pressed="true">Absolute</button>
-        <button type="button" id="view-per-actor" data-view="per_actor" aria-pressed="false">Per active contributor</button>
-        <button type="button" id="view-normalized" data-view="normalized" aria-pressed="false">Per cumulative user</button>
-        <button type="button" id="view-yoy" data-view="yoy" aria-pressed="false">YoY growth vs trend</button>
-      </div>
-    </div>
-    <p class="view-caption" id="view-caption"></p>
-    <div class="chart" id="volume-chart"></div>
-    <div class="legend" id="volume-legend"></div>
+    <div class="chart" id="pushes-chart"></div>
+    <div class="legend" id="pushes-legend"></div>
+    <h3>Gap from trend</h3>
+    <div class="chart" id="gap-chart"></div>
     <div class="milestone-key" id="milestone-key"></div>
-    <details class="table-view"><summary>View data table</summary><div class="table-wrap" id="volume-table"></div></details>
+    <details class="table-view"><summary>View data table</summary><div class="table-wrap" id="pushes-table"></div></details>
   </section>
 
-  <section class="panel" id="ai" aria-labelledby="ai-h">
+  <section class="panel" id="intensity" aria-labelledby="intensity-h">
     <div class="panel-head">
-      <h2 id="ai-h">AI and ML framework repositories</h2>
-      <p>Pushes to repositories whose name suggests AI or ML work, as raw volume and as a share of all public pushes that month.</p>
-    </div>
-    <div class="caveat" role="note">
-      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 7v4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="4.6" r="1" fill="currentColor"/></svg>
-      <div>
-        <p><strong>This is an approximate, name-based match.</strong> A repository counts if its name (not its owner's) contains a keyword, as a separate word, from <code>config/ai_ml_keywords.yaml</code> (pytorch, tensorflow, huggingface, langchain, openai, llama, copilot and others). It misses AI projects without a keyword in the name and catches some unrelated ones, so treat it as a trend signal, not a full count.</p>
-      </div>
+      <h2 id="intensity-h">More developers, or more per developer?</h2>
+      <p>Developer accounts grow steadily, a little faster from 2025. Pushes per account fell through 2024 and then rose sharply, so most of the 2025 rise is not explained by more people joining.</p>
     </div>
     <div class="grid-2">
       <div>
-        <h3>Pushes to matched repos</h3>
-        <div class="chart" id="ai-abs-chart"></div>
+        <h3>Developer accounts</h3>
+        <div class="chart" id="devs-chart"></div>
+        <p class="note">Accounts as of the end of each quarter, bots and spam excluded. Includes accounts that are no longer active.</p>
       </div>
       <div>
-        <h3>Share of all public pushes</h3>
-        <div class="chart" id="ai-share-chart"></div>
+        <h3>Pushes per developer account</h3>
+        <div class="chart" id="ppd-chart"></div>
+        <p class="note">Quarterly pushes over accounts. Inactive accounts sit in the denominator, so read the direction, not the level.</p>
       </div>
     </div>
-    <details class="table-view"><summary>View data table</summary><div class="table-wrap" id="ai-table"></div></details>
+    <details class="table-view"><summary>View data table</summary><div class="table-wrap" id="intensity-table"></div></details>
   </section>
 
-  <section class="panel" id="users" aria-labelledby="users-h">
+  <section class="panel" id="topics" aria-labelledby="topics-h">
     <div class="panel-head">
-      <h2 id="users-h">Size of the user base</h2>
-      <p>The line counts distinct accounts seen in public events for the first time, added up from the start of GH Archive in 2011 and shown from January 2015. The diamonds are GitHub's own published developer counts, which include private-only accounts. They are reference points from outside this dataset, so the two will not match.</p>
+      <h2 id="topics-h">Developers pushing to AI-tagged repositories</h2>
+      <p>Developers who pushed at least once that quarter to a repository its owner tagged with each topic. A developer working in several tagged repositories counts once per topic.</p>
     </div>
     <div class="caveat" role="note">
       <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 7v4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="4.6" r="1" fill="currentColor"/></svg>
-      <div>
-        <p><strong>Accounts with no public activity since early 2011 are not counted.</strong> The count is built from GH Archive's first month (February 2011), so accounts that joined before 2015 are already included when the line starts. Only accounts whose public activity ended before GH Archive began are missing. That is a small group next to the user base shown here, so the line sits slightly below the true total by roughly the same amount throughout.</p>
-      </div>
+      <div><p><strong>Topic tags are optional and set by repository owners,</strong> so these counts cover only tagged repositories and run low. Per-economy counts under 100 are withheld, which hides a topic entirely in its early quarters. Read the timing and shape, not the totals.</p></div>
     </div>
-    <div class="chart" id="users-chart"></div>
-    <div class="legend" id="users-legend"></div>
-    <details class="table-view"><summary>View data table</summary><div class="table-wrap" id="users-table"></div></details>
+    <div class="chart" id="topics-chart"></div>
+    <div class="legend" id="topics-legend"></div>
+    <details class="table-view"><summary>View data table</summary><div class="table-wrap" id="topics-table"></div></details>
+  </section>
+
+  <section class="panel" id="languages" aria-labelledby="languages-h">
+    <div class="panel-head">
+      <h2 id="languages-h">Language mix</h2>
+      <p>Each language's share of developers pushing to repositories in it, for the languages most used in the latest quarter. A developer counts once for every language they push to, so shares are of developer–language pairs and add up to less than 100% across the languages shown.</p>
+    </div>
+    <div class="chart" id="languages-chart"></div>
+    <div class="legend" id="languages-legend"></div>
+    <details class="table-view"><summary>View data table</summary><div class="table-wrap" id="languages-table"></div></details>
+  </section>
+
+  <section class="panel" id="sources" aria-labelledby="sources-h">
+    <div class="panel-head">
+      <h2 id="sources-h">Why not GH Archive</h2>
+      <p>An earlier version of this page used GH Archive, which records GitHub's public event feed and goes back to 2011. Its quarterly push counts (orange) include bots. Next to the Innovation Graph (blue), they show three phases:</p>
+    </div>
+    <ul id="sources-list" class="panel-head" style="margin:0;padding-left:20px;color:var(--ink-2);max-width:72ch"></ul>
+    <div class="chart" id="sources-chart"></div>
+    <div class="legend" id="sources-legend"></div>
+    <details class="table-view"><summary>View data table</summary><div class="table-wrap" id="sources-table"></div></details>
   </section>
 
   <footer>
-    <p>Sources: GH Archive monthly tables via BigQuery (<code>githubarchive.month.*</code>), <code>config/milestones.yaml</code> for release dates and GitHub's published user counts, and <code>config/data_quality.yaml</code> for the known gaps in GH Archive's collection. Hover or focus a chart and use the arrow keys to read exact values.</p>
+    <p id="footer-source">Sources: GitHub Innovation Graph, CC0 (<code>github/innovationgraph</code>); GH Archive monthly tables via BigQuery for the comparison panel; <code>config/milestones.yaml</code> for release dates.</p>
+    <p>Hover or focus a chart and use the arrow keys to read exact values.</p>
   </footer>
 </div>
 
@@ -323,16 +319,17 @@ footer { color: var(--muted); font-size: 13px; max-width: 80ch; }
 (function () {
   "use strict";
 
-  const FILES = ["monthly_volume.csv", "cumulative_actors.csv", "monthly_ai_topics.csv", "milestones.json", "data_quality.json"];
-  const CHATGPT = "202211";
+  const FILES = ["ig_quarterly.csv", "ig_topics.csv", "ig_languages.csv", "gha_quarterly.csv",
+                 "ig_meta.json", "milestones.json", "data_quality.json"];
   const SLOTS = ["var(--s1)", "var(--s2)", "var(--s3)", "var(--s4)", "var(--s5)", "var(--s6)", "var(--s7)", "var(--s8)"];
 
   // ---------- helpers ----------
-  const ymKey = (s) => String(s).replace("-", "").trim();
-  const parseYM = (s) => { const k = ymKey(s); return new Date(Date.UTC(+k.slice(0, 4), +k.slice(4, 6) - 1, 1)); };
-  // Calendar month count for a "YYYYMM" key, and a key shifted by n months (handles year rollover).
-  const monthIndex = (k) => +k.slice(0, 4) * 12 + (+k.slice(4, 6) - 1);
-  const shiftYM = (k, n) => { const m = monthIndex(k) + n; return String(Math.floor(m / 12)) + String((m % 12) + 1).padStart(2, "0"); };
+  // A quarter is drawn at its middle month (Q1 at mid-February) so monthly milestones sit in the right place.
+  const parseQ = (k) => { const y = +k.slice(0, 4), q = +k.slice(5); return new Date(Date.UTC(y, (q - 1) * 3 + 1, 15)); };
+  const qLabel = (k) => "Q" + k.slice(5) + " " + k.slice(0, 4);
+  const qOfDate = (d) => d.getUTCFullYear() + "Q" + (Math.floor(d.getUTCMonth() / 3) + 1);
+  const fmtQuarter = (d) => qLabel(qOfDate(d));
+  const parseYM = (s) => { const k = String(s).replace("-", ""); return new Date(Date.UTC(+k.slice(0, 4), +k.slice(4, 6) - 1, 1)); };
   const fmtMonth = d3.utcFormat("%b %Y");
   const fmtInt = d3.format(",");
   const fmtSI = (v) => {
@@ -342,11 +339,10 @@ footer { color: var(--muted); font-size: 13px; max-width: 80ch; }
     if (a >= 1e3) return d3.format(".0f")(v / 1e3) + "K";
     return d3.format(".2~f")(v);
   };
-  const fmtPct2 = d3.format(".2%");
   const fmtSignedPct = d3.format("+.1%");
-  const fmtDec = d3.format(",.1f");
-  // Counts for months excluded as collection gaps are null.
-  const fmtN = (v) => v != null && isFinite(v) ? fmtInt(Math.round(v)) : "excluded";
+  const fmtPct1 = d3.format(".1%");
+  const num = (s) => s === "" || s == null ? null : +s;
+  const ok = (v) => v != null && isFinite(v);
 
   async function load(name) {
     // Published: files sit next to the page at data/<name>.
@@ -366,16 +362,15 @@ footer { color: var(--muted); font-size: 13px; max-width: 80ch; }
 
   // ---------- tooltip ----------
   const tip = document.getElementById("tooltip");
-  function showTip(evtOrPoint, build) {
+  function showTip(pt, build) {
     tip.replaceChildren();
     build(tip);
     tip.hidden = false;
-    const pad = 14;
-    const w = tip.offsetWidth, h = tip.offsetHeight;
-    let x = evtOrPoint.clientX + pad, y = evtOrPoint.clientY + pad;
-    if (x + w > window.innerWidth - 8) x = evtOrPoint.clientX - w - pad;
+    const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
+    let x = pt.clientX + pad, y = pt.clientY + pad;
+    if (x + w > window.innerWidth - 8) x = pt.clientX - w - pad;
     if (x < 8) x = 8;
-    if (y + h > window.innerHeight - 8) y = evtOrPoint.clientY - h - pad;
+    if (y + h > window.innerHeight - 8) y = pt.clientY - h - pad;
     if (y < 8) y = 8;
     tip.style.left = x + "px";
     tip.style.top = y + "px";
@@ -387,11 +382,10 @@ footer { color: var(--muted); font-size: 13px; max-width: 80ch; }
     if (text != null) e.textContent = text;
     return e;
   }
-  function tipRow(parent, color, value, name, dashed, rect) {
+  function tipRow(parent, color, value, name, dashed) {
     const row = el("div", "tt-row");
     const key = el("span", "tt-key" + (dashed ? " dashed" : ""));
-    if (rect) { key.style.border = "0"; key.style.height = "10px"; key.style.width = "10px"; key.style.borderRadius = "2px"; key.style.background = color; }
-    else key.style.borderTopColor = color;
+    key.style.borderTopColor = color;
     row.append(key, el("span", "tt-val", value), el("span", "tt-name", name));
     parent.append(row);
   }
@@ -403,7 +397,6 @@ footer { color: var(--muted); font-size: 13px; max-width: 80ch; }
       const item = el("span", "item");
       let key;
       if (it.kind === "rect") { key = el("span", "key-rect"); key.style.background = it.color; }
-      else if (it.kind === "diamond") { key = el("span", "key-diamond"); }
       else { key = el("span", "key-line" + (it.dashed ? " dashed" : "")); key.style.borderTopColor = it.color; }
       item.append(key, el("span", null, it.label));
       container.append(item);
@@ -424,13 +417,13 @@ footer { color: var(--muted); font-size: 13px; max-width: 80ch; }
     container.replaceChildren(table);
   }
 
-  // ---------- milestone layer ----------
-  // Flags closer than FLAG_GAP px stack upward into extra rows so the numbers never overlap.
+  // ---------- shared chart layers ----------
+  // Milestone flags closer than FLAG_GAP px stack upward so the numbers never overlap.
   const FLAG_GAP = 18, FLAG_ROW = 19;
-  function flagRows(x, milestones) {
+  function flagRows(x, items) {
     const rows = [];
     let prevX = -Infinity, prevRow = -1;
-    for (const m of milestones) {
+    for (const m of items) {
       const px = x(m.date);
       const row = px - prevX < FLAG_GAP ? prevRow + 1 : 0;
       rows.push(row);
@@ -439,248 +432,221 @@ footer { color: var(--muted); font-size: 13px; max-width: 80ch; }
     return rows;
   }
   const flagTop = (rows) => 16 + FLAG_ROW * (d3.max(rows) + 1 || 1);
-  function drawMilestones(g, x, innerH, milestones, domain, rows) {
-    const layer = g.append("g").attr("class", "milestones");
-    milestones.forEach((m, i) => {
-      if (m.date < domain[0] || m.date > domain[1]) return;
-      const px = x(m.date), fy = -18 - FLAG_ROW * rows[i];
-      layer.append("line").attr("class", "ms-line").attr("x1", px).attr("x2", px).attr("y1", fy + 8).attr("y2", innerH);
-      const flag = layer.append("g").attr("class", "ms-flag").attr("transform", `translate(${px},${fy})`);
-      flag.append("circle").attr("r", 8);
-      flag.append("text").attr("text-anchor", "middle").attr("dy", "0.35em").text(i + 1);
-      layer.append("circle").attr("class", "ms-hit").attr("cx", px).attr("cy", fy).attr("r", 10)
-        .attr("tabindex", 0).attr("role", "img").attr("aria-label", `${m.label}, ${fmtMonth(m.date)}`)
-        .on("pointerenter pointermove", (ev) => showTip(ev, (t) => { t.append(el("div", "tt-head", fmtMonth(m.date))); t.append(el("div", null, m.label)); }))
-        .on("pointerleave blur", hideTip)
-        .on("focus", function () { const b = this.getBoundingClientRect(); showTip({ clientX: b.right, clientY: b.bottom }, (t) => { t.append(el("div", "tt-head", fmtMonth(m.date))); t.append(el("div", null, m.label)); }); });
+  function hitTarget(layer, px, py, label, build) {
+    layer.append("circle").attr("class", "ms-hit").attr("cx", px).attr("cy", py).attr("r", 10)
+      .attr("tabindex", 0).attr("role", "img").attr("aria-label", label)
+      .on("pointerenter pointermove", (ev) => showTip(ev, build))
+      .on("pointerleave blur", hideTip)
+      .on("focus", function () { const b = this.getBoundingClientRect(); showTip({ clientX: b.right, clientY: b.bottom }, build); });
+  }
+  // flags: [{date, kind:"ms"|"brk", n, label, note}] sorted by date
+  function drawFlags(g, x, ih, flags, rows) {
+    const layer = g.append("g");
+    const [d0, d1] = x.domain();
+    flags.forEach((f, i) => {
+      if (f.date < d0 || f.date > d1) return;
+      const px = x(f.date), fy = -18 - FLAG_ROW * rows[i];
+      if (f.kind === "brk") {
+        layer.append("line").attr("class", "brk-line").attr("x1", px).attr("x2", px).attr("y1", fy + 8).attr("y2", ih);
+        const flag = layer.append("g").attr("class", "brk-flag").attr("transform", `translate(${px},${fy})`);
+        flag.append("path").attr("d", "M-7,-7H7V7H-7Z");
+        flag.append("text").attr("text-anchor", "middle").attr("dy", "0.35em").text("!");
+        hitTarget(layer, px, fy, `GH Archive collection change, ${fmtMonth(f.date)}: ${f.note}`,
+          (t) => { t.append(el("div", "tt-head", fmtMonth(f.date) + " · GH Archive collection change")); t.append(el("div", null, f.note)); });
+      } else {
+        layer.append("line").attr("class", "ms-line").attr("x1", px).attr("x2", px).attr("y1", fy + 8).attr("y2", ih);
+        const flag = layer.append("g").attr("class", "ms-flag").attr("transform", `translate(${px},${fy})`);
+        flag.append("circle").attr("r", 8);
+        flag.append("text").attr("text-anchor", "middle").attr("dy", "0.35em").text(f.n);
+        hitTarget(layer, px, fy, `${f.label}, ${fmtMonth(f.date)}`,
+          (t) => { t.append(el("div", "tt-head", fmtMonth(f.date))); t.append(el("div", null, f.label)); });
+      }
     });
   }
-  const milestoneAt = (milestones, d) => milestones.filter((m) => +m.date === +d);
-
-  // Source breaks: lasting changes in GH Archive's collection, drawn as a "!" flag.
-  function drawBreaks(g, x, innerH, breaks, domain) {
-    const layer = g.append("g").attr("class", "breaks");
-    for (const b of breaks) {
-      if (b.date < domain[0] || b.date > domain[1]) continue;
-      const px = x(b.date), fy = -18;
-      layer.append("line").attr("class", "brk-line").attr("x1", px).attr("x2", px).attr("y1", fy + 8).attr("y2", innerH);
-      const flag = layer.append("g").attr("class", "brk-flag").attr("transform", `translate(${px},${fy})`);
-      flag.append("path").attr("d", "M-7,-7H7V7H-7Z");
-      flag.append("text").attr("text-anchor", "middle").attr("dy", "0.35em").text("!");
-      const build = (t) => { t.append(el("div", "tt-head", fmtMonth(b.date) + " · collection change")); t.append(el("div", null, b.note)); };
-      layer.append("circle").attr("class", "ms-hit").attr("cx", px).attr("cy", fy).attr("r", 10)
-        .attr("tabindex", 0).attr("role", "img").attr("aria-label", `Collection change, ${fmtMonth(b.date)}: ${b.note}`)
-        .on("pointerenter pointermove", (ev) => showTip(ev, build))
-        .on("pointerleave blur", hideTip)
-        .on("focus", function () { const r = this.getBoundingClientRect(); showTip({ clientX: r.right, clientY: r.bottom }, build); });
-    }
+  function drawBand(g, x, ih, band) {
+    if (!band) return;
+    const x0 = Math.max(0, x(band.from)), x1 = Math.min(x.range()[1], x(band.to));
+    if (x1 <= x0) return;
+    const b = g.append("g").attr("class", "band");
+    b.append("rect").attr("x", x0).attr("width", x1 - x0).attr("y", 0).attr("height", ih);
+    b.append("text").attr("x", x0 + 6).attr("y", 14).text(band.label);
+  }
+  function axes(g, x, y, iw, ih, yTick, narrow) {
+    g.append("g").call(d3.axisLeft(y).ticks(5).tickSize(-iw).tickFormat(yTick)).call((a) => a.selectAll(".tick text").attr("x", -8));
+    const years = x.domain()[1].getUTCFullYear() - x.domain()[0].getUTCFullYear();
+    const every = narrow ? (years > 8 ? 3 : 2) : (years > 8 ? 2 : 1);
+    g.append("g").attr("transform", `translate(0,${ih})`)
+      .call(d3.axisBottom(x).ticks(d3.utcYear.every(every)).tickSize(0).tickFormat(d3.utcFormat(narrow ? "'%y" : "%Y")))
+      .call((a) => a.selectAll("text").attr("dy", "1.2em"));
+  }
+  // Keyboard + pointer reading of the column at index i.
+  function attachReader(g, x, iw, ih, dates, ariaLabel, onUpdate, onClear) {
+    const overlay = g.append("rect").attr("width", iw).attr("height", ih).style("fill", "transparent")
+      .attr("tabindex", 0).attr("aria-label", ariaLabel + ". Use left and right arrow keys to read values.");
+    const bis = d3.bisector((d) => d).center;
+    let cur = dates.length - 1;
+    const at = (i, pt) => { cur = Math.max(0, Math.min(dates.length - 1, i)); onUpdate(cur, pt); };
+    overlay.on("pointermove", (ev) => { const [mx] = d3.pointer(ev); at(bis(dates, x.invert(mx)), ev); })
+      .on("pointerleave", onClear).on("blur", onClear)
+      .on("focus", function () { const b = this.getBoundingClientRect(); at(cur, { clientX: b.left + x(dates[cur]), clientY: b.top + 20 }); })
+      .on("keydown", function (ev) {
+        if (ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") return;
+        ev.preventDefault();
+        const b = this.getBoundingClientRect();
+        const ni = Math.max(0, Math.min(dates.length - 1, cur + (ev.key === "ArrowRight" ? 1 : -1)));
+        at(ni, { clientX: b.left + x(dates[ni]), clientY: b.top + 20 });
+      });
   }
 
   // ---------- line chart ----------
-  // opts: { series:[{id,label,color,dashed,values:[{date,v}]}], yTick, yVal, height, zeroLine, includeZero,
-  //         milestones, breaks:[{date,note}], notes(tooltip, date), refPoints:[{date,v,label,detail}],
-  //         directLabels, extraTip(tooltip, date, index) }
+  // opts: { series:[{label,color,dashed,area,values:[{date,v}]}] (all series share the same dates),
+  //         yTick, yVal, height, includeZero, flags, band, directLabels, extraTip(t, i), ariaLabel }
   function lineChart(container, opts) {
     const width = Math.max(280, container.clientWidth);
     const height = opts.height || 320;
     const narrow = width < 520;
     const useDirect = opts.directLabels !== false && !narrow && opts.series.length <= 4;
     const labelW = useDirect ? d3.max(opts.series, (s) => s.label.length) * 7 + 14 : 14;
-    const m = { top: 12, right: Math.min(180, labelW), bottom: 26, left: 52 };
+    const m = { top: 12, right: Math.min(190, labelW), bottom: 26, left: 52 };
     const iw = width - m.left - m.right;
-
-    const all = opts.series.flatMap((s) => s.values);
     const dates = opts.series[0].values.map((d) => d.date);
-    const x = d3.scaleUtc().domain(d3.extent(all, (d) => d.date)).range([0, iw]);
-    const rows = opts.milestones ? flagRows(x, opts.milestones) : [];
-    if (opts.milestones) m.top = flagTop(rows);
+    const x = d3.scaleUtc().domain(d3.extent(dates)).range([0, iw]);
+    const rows = opts.flags ? flagRows(x, opts.flags) : [];
+    if (opts.flags && opts.flags.length) m.top = flagTop(rows);
     const ih = height - m.top - m.bottom;
-    let yExt = d3.extent(all.concat(opts.refPoints || []), (d) => d.v);
+    const vals = opts.series.flatMap((s) => s.values.map((d) => d.v)).filter(ok);
+    let yExt = d3.extent(vals);
     if (opts.includeZero !== false) yExt = [Math.min(0, yExt[0]), Math.max(0, yExt[1])];
     const y = d3.scaleLinear().domain(yExt).nice(5).range([ih, 0]);
 
     const svg = d3.select(container).html("").append("svg").attr("width", width).attr("height", height)
       .attr("role", "img").attr("aria-label", opts.ariaLabel || "");
     const g = svg.append("g").attr("transform", `translate(${m.left},${m.top})`);
+    drawBand(g, x, ih, opts.band);
+    axes(g, x, y, iw, ih, opts.yTick, narrow);
+    g.append("line").attr("class", "baseline").attr("x1", 0).attr("x2", iw).attr("y1", ih).attr("y2", ih);
+    if (opts.flags) drawFlags(g, x, ih, opts.flags, rows);
 
-    g.append("g").call(d3.axisLeft(y).ticks(5).tickSize(-iw).tickFormat(opts.yTick)).call((a) => a.selectAll(".tick text").attr("x", -8));
-    g.append("g").attr("transform", `translate(0,${ih})`)
-      .call(d3.axisBottom(x).ticks(d3.utcYear.every(narrow ? 2 : 1)).tickSize(0).tickFormat(d3.utcFormat(narrow ? "'%y" : "%Y")))
-      .call((a) => a.selectAll("text").attr("dy", "1.2em"));
-    const zeroY = y.domain()[0] <= 0 && y.domain()[1] >= 0 ? y(0) : ih;
-    g.append("line").attr("class", "baseline").attr("x1", 0).attr("x2", iw).attr("y1", zeroY).attr("y2", zeroY);
-
-    if (opts.milestones) drawMilestones(g, x, ih, opts.milestones, x.domain(), rows);
-    if (opts.breaks) drawBreaks(g, x, ih, opts.breaks, x.domain());
-
-    const line = d3.line().defined((d) => d.v != null && isFinite(d.v)).x((d) => x(d.date)).y((d) => y(d.v));
+    const line = d3.line().defined((d) => ok(d.v)).x((d) => x(d.date)).y((d) => y(d.v));
     for (const s of opts.series) {
       if (s.area) {
-        const area = d3.area().defined((d) => d.v != null && isFinite(d.v)).x((d) => x(d.date)).y0(y(0)).y1((d) => y(d.v));
+        const area = d3.area().defined((d) => ok(d.v)).x((d) => x(d.date)).y0(y(Math.max(0, y.domain()[0]))).y1((d) => y(d.v));
         g.append("path").datum(s.values).attr("d", area).style("fill", s.color).style("fill-opacity", 0.12);
       }
       g.append("path").datum(s.values).attr("d", line).style("fill", "none").style("stroke", s.color)
         .attr("stroke-width", 2).attr("stroke-linejoin", "round").attr("stroke-linecap", "round")
         .attr("stroke-dasharray", s.dashed ? "6 4" : null);
     }
-
     if (useDirect) {
       const labels = opts.series.map((s) => {
-        const last = [...s.values].reverse().find((d) => d.v != null && isFinite(d.v));
+        const last = [...s.values].reverse().find((d) => ok(d.v));
         return last ? { s, y: y(last.v) } : null;
       }).filter(Boolean).sort((a, b) => a.y - b.y);
       for (let i = 1; i < labels.length; i++) if (labels[i].y - labels[i - 1].y < 14) labels[i].y = labels[i - 1].y + 14;
       for (const l of labels) g.append("text").attr("class", "direct-label").attr("x", iw + 8).attr("y", l.y).attr("dy", "0.35em").text(l.s.label);
     }
 
-    // reference points (externally published figures)
-    if (opts.refPoints) {
-      const rp = g.append("g");
-      for (const p of opts.refPoints) {
-        const px = x(p.date), py = y(p.v);
-        rp.append("path").attr("d", d3.symbol(d3.symbolDiamond, 90)()).attr("transform", `translate(${px},${py})`)
-          .style("fill", "var(--surface)").style("stroke", "var(--ink)").attr("stroke-width", 2);
-        rp.append("text").attr("class", "ref-label").attr("x", px - 8).attr("y", py - 10).attr("text-anchor", "end").text(p.label);
-      }
-    }
-
-    // crosshair
     const cross = g.append("line").attr("class", "crosshair").attr("y1", 0).attr("y2", ih).style("display", "none");
     const dots = opts.series.map((s) => g.append("circle").attr("r", 4.5).style("fill", s.color).style("stroke", "var(--surface)").attr("stroke-width", 2).style("display", "none"));
-    const overlay = g.append("rect").attr("width", iw).attr("height", ih).style("fill", "transparent")
-      .attr("tabindex", 0).attr("aria-label", (opts.ariaLabel || "Chart") + ". Use left and right arrow keys to read values.");
-    const bis = d3.bisector((d) => d).center;
-    let cur = dates.length - 1;
-    function update(i, pt) {
-      cur = Math.max(0, Math.min(dates.length - 1, i));
-      const d = dates[cur], px = x(d);
+    const clear = () => { cross.style("display", "none"); dots.forEach((c) => c.style("display", "none")); hideTip(); };
+    attachReader(g, x, iw, ih, dates, opts.ariaLabel || "Chart", (i, pt) => {
+      const px = x(dates[i]);
       cross.attr("x1", px).attr("x2", px).style("display", null);
       opts.series.forEach((s, k) => {
-        const v = s.values[cur] && s.values[cur].v;
-        if (v != null && isFinite(v)) dots[k].attr("cx", px).attr("cy", y(v)).style("display", null);
-        else dots[k].style("display", "none");
+        const v = s.values[i].v;
+        if (ok(v)) dots[k].attr("cx", px).attr("cy", y(v)).style("display", null); else dots[k].style("display", "none");
       });
       showTip(pt, (t) => {
-        t.append(el("div", "tt-head", fmtMonth(d)));
-        opts.series.forEach((s) => {
-          const v = s.values[cur] && s.values[cur].v;
-          tipRow(t, s.color, v != null && isFinite(v) ? opts.yVal(v) : "n/a", s.label, s.dashed);
-        });
-        if (opts.extraTip) opts.extraTip(t, d, cur);
-        if (opts.milestones) for (const ms of milestoneAt(opts.milestones, d)) t.append(el("div", "tt-note", "Milestone: " + ms.label));
-        if (opts.notes) opts.notes(t, d);
+        t.append(el("div", "tt-head", fmtQuarter(dates[i])));
+        const order = opts.series.length > 4 ? [...opts.series].sort((a, b) => (b.values[i].v ?? -Infinity) - (a.values[i].v ?? -Infinity)) : opts.series;
+        for (const s of order) tipRow(t, s.color, ok(s.values[i].v) ? opts.yVal(s.values[i].v) : "n/a", s.label, s.dashed);
+        if (opts.extraTip) opts.extraTip(t, i);
       });
-    }
-    function clear() { cross.style("display", "none"); dots.forEach((c) => c.style("display", "none")); hideTip(); }
-    overlay.on("pointermove", (ev) => { const [mx] = d3.pointer(ev); update(bis(dates, x.invert(mx)), ev); })
-      .on("pointerleave", clear).on("blur", clear)
-      .on("focus", function () { const b = this.getBoundingClientRect(); update(cur, { clientX: b.left + x(dates[cur]), clientY: b.top + 20 }); })
-      .on("keydown", function (ev) {
-        if (ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") return;
-        ev.preventDefault();
-        const b = this.getBoundingClientRect();
-        const ni = cur + (ev.key === "ArrowRight" ? 1 : -1);
-        update(ni, { clientX: b.left + x(dates[Math.max(0, Math.min(dates.length - 1, ni))]), clientY: b.top + 20 });
-      });
+    }, clear);
+  }
 
-    // reference-point hit targets sit above the overlay so they win the pointer
-    if (opts.refPoints) {
-      for (const p of opts.refPoints) {
-        const build = (t) => {
-          t.append(el("div", "tt-head", fmtMonth(p.date) + " · published figure"));
-          tipRow(t, "var(--ink)", p.label, "GitHub developers", false);
-          t.append(el("div", "tt-note", p.detail));
-        };
-        g.append("circle").attr("cx", x(p.date)).attr("cy", y(p.v)).attr("r", 13).style("fill", "transparent").style("cursor", "help")
-          .attr("tabindex", 0).attr("aria-label", `GitHub published ${p.label} developers, ${fmtMonth(p.date)}`)
-          .on("pointerenter pointermove", (ev) => { clear(); showTip(ev, build); })
-          .on("pointerleave blur", hideTip)
-          .on("focus", function () { const b = this.getBoundingClientRect(); showTip({ clientX: b.right, clientY: b.bottom }, build); });
-      }
-    }
+  // ---------- diverging bar chart ----------
+  // opts: { values:[{date,v}], yTick, yVal, height, flags, band, extraTip(t, i), ariaLabel }
+  function barChart(container, opts) {
+    const width = Math.max(280, container.clientWidth);
+    const height = opts.height || 220;
+    const narrow = width < 520;
+    const m = { top: 12, right: 14, bottom: 26, left: 52 };
+    const iw = width - m.left - m.right;
+    const dates = opts.values.map((d) => d.date);
+    const step = iw / dates.length;
+    const x = d3.scaleUtc().domain(d3.extent(dates)).range([step / 2, iw - step / 2]);
+    const rows = opts.flags ? flagRows(x, opts.flags) : [];
+    if (opts.flags && opts.flags.length) m.top = flagTop(rows);
+    const ih = height - m.top - m.bottom;
+    const ext = d3.extent(opts.values, (d) => d.v);
+    const y = d3.scaleLinear().domain([Math.min(0, ext[0]), Math.max(0, ext[1])]).nice(5).range([ih, 0]);
+    const svg = d3.select(container).html("").append("svg").attr("width", width).attr("height", height)
+      .attr("role", "img").attr("aria-label", opts.ariaLabel || "");
+    const g = svg.append("g").attr("transform", `translate(${m.left},${m.top})`);
+    drawBand(g, x, ih, opts.band && { ...opts.band, from: new Date(+opts.band.from - 45 * 864e5), to: new Date(+opts.band.to + 45 * 864e5) });
+    axes(g, x, y, iw, ih, opts.yTick, narrow);
+    if (opts.flags) drawFlags(g, x, ih, opts.flags, rows);
+    const bw = Math.max(2, Math.min(28, step * 0.72));
+    const hl = g.append("rect").attr("class", "bar-hl").attr("y", 0).attr("height", ih).attr("width", step).style("display", "none");
+    g.append("g").selectAll("rect").data(opts.values).join("rect")
+      .attr("x", (d) => x(d.date) - bw / 2).attr("width", bw)
+      .attr("y", (d) => y(Math.max(0, d.v))).attr("height", (d) => Math.abs(y(d.v) - y(0)))
+      .attr("rx", Math.min(3, bw / 4))
+      .style("fill", (d) => d.v >= 0 ? "var(--pos)" : "var(--neg)");
+    g.append("line").attr("class", "zero").attr("x1", 0).attr("x2", iw).attr("y1", y(0)).attr("y2", y(0));
+    const clear = () => { hl.style("display", "none"); hideTip(); };
+    attachReader(g, x, iw, ih, dates, opts.ariaLabel || "Chart", (i, pt) => {
+      hl.attr("x", x(dates[i]) - step / 2).style("display", null);
+      showTip(pt, (t) => {
+        t.append(el("div", "tt-head", fmtQuarter(dates[i])));
+        const v = opts.values[i].v;
+        tipRow(t, v >= 0 ? "var(--pos)" : "var(--neg)", opts.yVal(v), v >= 0 ? "above trend" : "below trend");
+        if (opts.extraTip) opts.extraTip(t, i);
+      });
+    }, clear);
   }
 
   // ---------- main ----------
   async function main() {
-    const [volRawAll, actRawAll, aiRawAll, ms, dq] = await Promise.all(FILES.map(load));
+    const [qRaw, topicRaw, langRaw, ghaRaw, meta, ms, dq] = await Promise.all(FILES.map(load));
 
-    // ----- data quality (config/data_quality.yaml) -----
-    // Months after last_reliable_month are dropped. Gap months stay on the axis
-    // with null values, so lines break there, and are left out of the trend fit
-    // and YoY. YoY is not computed across a source break.
-    const lastKey = ymKey(dq.last_reliable_month);
-    const gapNote = new Map(dq.gap_months.map((g) => [ymKey(g.month), g.note]));
-    const breaks = dq.source_breaks.map((b) => ({ key: ymKey(b.month), date: parseYM(b.month), note: b.note }))
-      .sort((a, b) => a.date - b.date);
-    const era = (k) => breaks.filter((b) => k >= b.key).length;
-    const keyOf = (date) => d3.utcFormat("%Y%m")(date);
-    const inRangeRows = (rows) => rows.filter((r) => ymKey(r.year_month) <= lastKey);
-    const volRaw = inRangeRows(volRawAll), actRaw = inRangeRows(actRawAll), aiRaw = inRangeRows(aiRawAll);
-    function dqNotes(t, date) {
-      const k = keyOf(date);
-      if (gapNote.has(k)) t.append(el("div", "tt-note", "Excluded (collection gap): " + gapNote.get(k)));
-      for (const b of breaks) if (b.key === k) t.append(el("div", "tt-note", "Collection change: " + b.note));
+    const q = qRaw.map((r) => ({
+      key: r.year_quarter, date: parseQ(r.year_quarter),
+      pushes: +r.git_pushes, devs: num(r.developers), repos: num(r.repositories),
+      trend: +r.trend_pushes, gap: +r.vs_trend, yoy: num(r.yoy), ppd: num(r.pushes_per_developer),
+    }));
+    const first = q[0], last = q[q.length - 1];
+    const baseEnd = meta.baseline_end;
+    const base = q.filter((d) => d.key <= baseEnd), after = q.filter((d) => d.key > baseEnd);
+    const band = { from: base[0].date, to: base[base.length - 1].date, label: "Baseline" };
+
+    document.getElementById("span-label").textContent =
+      `GitHub Innovation Graph ${meta.release} · ${qLabel(first.key)} to ${qLabel(last.key)} · quarterly`;
+    document.getElementById("footer-source").replaceChildren(
+      "Sources: GitHub Innovation Graph ", el("code", null, meta.release), ", CC0 (",
+      el("code", null, "github/innovationgraph"), "); GH Archive monthly tables via BigQuery for the comparison panel; ",
+      el("code", null, "config/milestones.yaml"), " for release dates.");
+
+    // ----- milestones -----
+    const msList = (ms.llm_milestones || []).map((m) => ({ date: parseYM(m.date), label: m.label })).sort((a, b) => a.date - b.date);
+    const inRange = (d) => d >= new Date(+first.date - 46 * 864e5) && d <= new Date(+last.date + 46 * 864e5);
+    const msShown = msList.filter((m) => inRange(m.date)).map((m, i) => ({ ...m, kind: "ms", n: i + 1 }));
+    const mk = document.getElementById("milestone-key");
+    for (const m of msShown) {
+      const it = el("span", "item");
+      it.append(el("span", "key-ms", String(m.n)), el("span", null, m.label), el("span", "when", fmtMonth(m.date)));
+      mk.append(it);
     }
-    const notesList = document.getElementById("data-notes-list");
-    const lastFull = [...volRawAll].map((r) => ymKey(r.year_month)).sort().pop();
-    const dqItems = [];
-    if (lastFull && lastFull > lastKey) dqItems.push(`Shown through ${fmtMonth(parseYM(lastKey))}. GH Archive's collection falls off after that, so the later months it holds are left out.`);
-    for (const g of dq.gap_months) dqItems.push(`${fmtMonth(parseYM(g.month))} is left out as a gap (a break in the line): ${g.note}`);
-    for (const b of breaks) dqItems.push(`${fmtMonth(b.date)}, marked "!" on the charts: ${b.note} Growth rates are not compared across it.`);
-    for (const txt of dqItems) notesList.append(el("li", null, txt));
-
-    const milestones = (ms.llm_milestones || []).map((m) => ({ date: parseYM(m.date), key: ymKey(m.date), label: m.label }))
-      .sort((a, b) => a.date - b.date);
-    const userMs = (ms.github_user_milestones || []).map((m) => ({ date: parseYM(m.date), users: +m.users_millions, source: m.source }));
-
-    const actByKey = new Map(actRaw.map((r) => [ymKey(r.year_month), { newc: +r.new_actor_count, cum: +r.cumulative_total }]));
-    const vol = volRaw.map((r) => ({
-      key: ymKey(r.year_month), date: parseYM(r.year_month),
-      pushes: +r.push_count, prs: +r.pr_event_count,
-      repos: +r.active_repo_count, actors: +r.active_actor_count,
-    })).sort((a, b) => a.date - b.date);
-    vol.forEach((d) => {
-      d.gap = gapNote.has(d.key);
-      if (d.gap) d.pushes = d.prs = d.repos = d.actors = null;
-    });
-    vol.forEach((d) => { const a = actByKey.get(d.key); d.cum = a ? a.cum : null; });
-    const volByKey = new Map(vol.map((d) => [d.key, d]));
-
-    // Pre-ChatGPT linear trend on push_count, x = calendar months since series start.
-    // Both x and the YoY comparison month come from the year_month key, not array
-    // position, so a missing month leaves a gap instead of shifting everything after it.
-    const x0 = monthIndex(vol[0].key);
-    vol.forEach((d) => { d.x = monthIndex(d.key) - x0; });
-    const pre = vol.filter((d) => d.key < CHATGPT && !d.gap);
-    const mx = d3.mean(pre, (d) => d.x), my = d3.mean(pre, (d) => d.pushes);
-    const slope = d3.sum(pre, (d) => (d.x - mx) * (d.pushes - my)) / d3.sum(pre, (d) => (d.x - mx) ** 2);
-    const intercept = my - slope * mx;
-    const trend = (x) => intercept + slope * x;
-    vol.forEach((d) => {
-      const prior = volByKey.get(shiftYM(d.key, -12));
-      d.trend = trend(d.x);
-      d.yoy = !d.gap && prior && prior.pushes && era(prior.key) === era(d.key) ? d.pushes / prior.pushes - 1 : null;
-      d.trendYoy = d.x >= 12 ? trend(d.x) / trend(d.x - 12) - 1 : null;
-      d.perActor = !d.gap && d.actors ? d.pushes / d.actors : null;
-      d.perCum = !d.gap && d.cum ? d.pushes / d.cum : null;
-    });
-
-    const first = vol[0], last = vol[vol.length - 1];
-    document.getElementById("span-label").textContent = `GH Archive public events · ${fmtMonth(first.date)} to ${fmtMonth(last.date)} · monthly`;
 
     // ----- key figures -----
-    const aiByKey = new Map(aiRaw.map((r) => [ymKey(r.year_month), +r.ai_push_count]));
-    const lastAi = aiByKey.get(last.key);
-    // The trend comparison is only like-for-like before the first source break
-    // after ChatGPT, so it is read at the last good month before that break.
-    const firstBreak = breaks.find((b) => b.key > CHATGPT);
-    const trendAt = [...vol].reverse().find((d) => !d.gap && d.pushes != null && (!firstBreak || d.key < firstBreak.key));
+    const low = after.reduce((a, b) => (b.gap < a.gap ? b : a));
+    const ppdLow = after.filter((d) => ok(d.ppd)).reduce((a, b) => (b.ppd < a.ppd ? b : a));
     const figs = [
-      { label: "Pushes, " + fmtMonth(last.date), value: fmtSI(last.pushes), sub: "YoY " + (last.yoy != null ? fmtSignedPct(last.yoy) : "n/a") },
-      { label: "Above pre-ChatGPT trend, " + fmtMonth(trendAt.date), value: fmtSignedPct(trendAt.pushes / trendAt.trend - 1),
-        sub: (firstBreak ? "last month before the " + fmtMonth(firstBreak.date) + " collection change; " : "") + "vs linear fit, " + fmtMonth(first.date) + " to Oct 2022" },
-      { label: "Pushes per active contributor", value: fmtDec(last.perActor), sub: fmtSI(last.actors) + " active accounts" },
-      { label: "AI/ML-named repo share", value: lastAi != null ? fmtPct2(lastAi / last.pushes) : "n/a", sub: "approximate name match" },
+      { label: "Pushes, " + qLabel(last.key), value: fmtSI(last.pushes), sub: "YoY " + (ok(last.yoy) ? fmtSignedPct(last.yoy) : "n/a") },
+      { label: "Vs pre-ChatGPT trend, " + qLabel(last.key), value: fmtSignedPct(last.gap), sub: "trend fitted " + qLabel(first.key) + " to " + qLabel(baseEnd) },
+      { label: "Low point vs trend", value: fmtSignedPct(low.gap), sub: qLabel(low.key) },
+      { label: "Pushes per developer account", value: d3.format(".2f")(last.ppd), sub: "low of " + d3.format(".2f")(ppdLow.ppd) + " in " + qLabel(ppdLow.key) },
     ];
     const figEl = document.getElementById("figures");
     for (const f of figs) {
@@ -689,124 +655,148 @@ footer { color: var(--muted); font-size: 13px; max-width: 80ch; }
       figEl.append(box);
     }
 
-    // ----- milestone key -----
-    const mk = document.getElementById("milestone-key");
-    milestones.forEach((m, i) => {
-      const it = el("span", "item");
-      it.append(el("span", "key-ms", String(i + 1)), el("span", null, m.label), el("span", "when", fmtMonth(m.date)));
-      mk.append(it);
-    });
-    breaks.forEach((b) => {
-      const it = el("span", "item");
-      it.append(el("span", "key-brk", "!"), el("span", null, "GH Archive collection change"), el("span", "when", fmtMonth(b.date)));
-      mk.append(it);
-    });
+    // ----- findings (computed so they stay true after a refresh) -----
+    // Longest run of consecutive quarters below trend after the baseline.
+    let run = [], best = [];
+    for (const d of after) {
+      if (d.gap < 0) { run.push(d); if (run.length > best.length) best = [...run]; } else run = [];
+    }
+    const firstAbove = after.find((d) => d.key > low.key && d.gap > 0);
+    const findings = [];
+    if (best.length) {
+      const early = after.filter((d) => d.key < best[0].key);
+      const lead = early.length ? `In the first ${early.length} quarters after ChatGPT, pushes ran at most ${fmtSignedPct(d3.max(early, (d) => d.gap))} above the old trend. ` : "";
+      findings.push(`Little lift from chatbots. ${lead}They then ran below it for ${best.length} straight quarters (${qLabel(best[0].key)} to ${qLabel(best[best.length - 1].key)}), bottoming out at ${fmtSignedPct(low.gap)} in ${qLabel(low.key)}. Pushes per developer account drifted down over the same period.`);
+    }
+    if (firstAbove) {
+      const lowRow = q.find((d) => d.key === low.key);
+      const growth = last.pushes / lowRow.pushes - 1;
+      const devGrowth = ok(last.devs) && ok(lowRow.devs) ? last.devs / lowRow.devs - 1 : null;
+      findings.push(`A sharp break from ${qLabel(firstAbove.key)}. Pushes rose ${fmtPct1(growth)} between ${qLabel(low.key)} and ${qLabel(last.key)} and now sit ${fmtSignedPct(last.gap)} above trend` +
+        (devGrowth != null ? `, while developer accounts grew ${fmtPct1(devGrowth)}. More accounts explain only part of it; pushes per account rose too.` : ".") +
+        " The timing matches the spring 2025 launch of agentic coding tools.");
+    }
+    const tl = (t) => { const rows = topicRaw.filter((r) => r.topic === t); return rows.length ? +rows[rows.length - 1].num_pushers : null; };
+    const agents = tl("ai-agents"), mcp = tl("mcp");
+    if (agents != null && mcp != null) findings.push(`AI work shows up directly in repository topics. Topics that barely registered before 2023 (llm) or 2025 (ai-agents, mcp) now have tens of thousands of developers pushing to them each quarter: ${fmtInt(agents)} for ai-agents and ${fmtInt(mcp)} for mcp in ${qLabel(last.key)}.`);
+    const fl = document.getElementById("findings-list");
+    for (const f of findings) fl.append(el("li", null, f));
 
-    // ----- headline chart -----
-    // YoY view starts 12 calendar months after the series start; a month whose
-    // prior-year month is missing keeps yoy = null and draws as a gap.
-    const yoyRows = vol.filter((d) => d.trendYoy != null);
-    const VIEWS = {
-      absolute: {
-        caption: "Total pushes to public repositories each month.",
-        series: [{ id: "c", label: "Pushes", color: "var(--s1)", area: true, values: vol.map((d) => ({ date: d.date, v: d.pushes })) }],
-        yTick: fmtSI, yVal: (v) => fmtInt(Math.round(v)),
-        table: [{ label: "Pushes", fmt: (d) => fmtN(d.pushes) }],
-      },
-      per_actor: {
-        caption: "Pushes divided by the number of distinct accounts active that month. If this rises, output per developer is rising, not just headcount.",
-        series: [{ id: "p", label: "Pushes per active contributor", color: "var(--s1)", values: vol.map((d) => ({ date: d.date, v: d.perActor })) }],
-        yTick: d3.format(".0f"), yVal: fmtDec, includeZero: false,
-        extra: (t, d, i) => { if (!vol[i].gap) t.append(el("div", "tt-note", fmtInt(vol[i].pushes) + " pushes / " + fmtInt(vol[i].actors) + " active")); },
-        table: [{ label: "Pushes", fmt: (d) => fmtN(d.pushes) }, { label: "Active contributors", fmt: (d) => fmtN(d.actors) }, { label: "Per contributor", fmt: (d) => fmtDec(d.perActor) }],
-      },
-      normalized: {
-        caption: "Pushes divided by the cumulative count of accounts first seen in public events. The count runs from the start of GH Archive in 2011, so accounts that joined before 2015 are included. Only accounts with no public activity since early 2011 are missing, a small group next to the user base in this period.",
-        series: [{ id: "n", label: "Pushes per cumulative user", color: "var(--s1)", values: vol.map((d) => ({ date: d.date, v: d.perCum })) }],
-        yTick: d3.format(".2~f"), yVal: d3.format(",.3f"),
-        extra: (t, d, i) => { if (!vol[i].gap) t.append(el("div", "tt-note", fmtInt(vol[i].pushes) + " pushes / " + (vol[i].cum != null ? fmtInt(vol[i].cum) : "n/a") + " cumulative users")); },
-        table: [{ label: "Pushes", fmt: (d) => fmtN(d.pushes) }, { label: "Cumulative users", fmt: (d) => d.cum != null ? fmtInt(d.cum) : "n/a" }, { label: "Per cumulative user", fmt: (d) => d.perCum != null ? d3.format(",.3f")(d.perCum) : "n/a" }],
-      },
-      yoy: {
-        caption: "Year-over-year change in pushes (solid) against the growth rate implied by a straight-line fit to monthly pushes before November 2022 (dashed). The gap after late 2022 is growth the old trend does not explain. The solid line breaks where a comparison would span a collection gap or the \"!\" collection change.",
+    // ----- intensity table -----
+    renderTable(document.getElementById("pushes-table"), [
+      { label: "Quarter", fmt: (d) => d.key }, { label: "Pushes", fmt: (d) => fmtInt(d.pushes) },
+      { label: "Trend", fmt: (d) => fmtInt(d.trend) }, { label: "Vs trend", fmt: (d) => fmtSignedPct(d.gap) },
+      { label: "YoY", fmt: (d) => ok(d.yoy) ? fmtSignedPct(d.yoy) : "n/a" },
+    ], q);
+    renderTable(document.getElementById("intensity-table"), [
+      { label: "Quarter", fmt: (d) => d.key }, { label: "Pushes", fmt: (d) => fmtInt(d.pushes) },
+      { label: "Developer accounts", fmt: (d) => ok(d.devs) ? fmtInt(d.devs) : "n/a" },
+      { label: "Pushes per account", fmt: (d) => ok(d.ppd) ? d3.format(".3f")(d.ppd) : "n/a" },
+      { label: "Repositories", fmt: (d) => ok(d.repos) ? fmtInt(d.repos) : "n/a" },
+    ], q);
+
+    // ----- topics -----
+    const topics = [...new Set(topicRaw.map((r) => r.topic))];
+    const topicBy = d3.rollup(topicRaw, (v) => +v[0].num_pushers, (r) => r.topic, (r) => r.year_quarter);
+    const topicSeries = topics.map((t, i) => ({ label: t, color: SLOTS[i % SLOTS.length], values: q.map((d) => ({ date: d.date, v: topicBy.get(t).get(d.key) ?? null })) }))
+      .sort((a, b) => b.values[b.values.length - 1].v - a.values[a.values.length - 1].v);
+    renderTable(document.getElementById("topics-table"),
+      [{ label: "Quarter", fmt: (d) => d.key }, ...topicSeries.map((s) => ({ label: s.label, fmt: (d) => fmtInt(topicBy.get(s.label).get(d.key) ?? 0) }))], q);
+
+    // ----- languages -----
+    const langs = [...new Set(langRaw.map((r) => r.language))];
+    const langBy = d3.rollup(langRaw, (v) => ({ n: +v[0].num_pushers, share: num(v[0].share) }), (r) => r.language, (r) => r.year_quarter);
+    const langSeries = langs.map((l, i) => ({ label: l, color: SLOTS[i % SLOTS.length], values: q.map((d) => ({ date: d.date, v: langBy.get(l).get(d.key)?.share ?? null })) }));
+    renderTable(document.getElementById("languages-table"),
+      [{ label: "Quarter", fmt: (d) => d.key }, ...langs.map((l) => ({ label: l, fmt: (d) => { const c = langBy.get(l).get(d.key); return c ? fmtPct1(c.share) : "n/a"; } }))], q);
+
+    // ----- sources -----
+    const igByKey = new Map(q.map((d) => [d.key, d]));
+    const gha = ghaRaw.filter((r) => r.year_quarter <= last.key).map((r) => ({ key: r.year_quarter, date: parseQ(r.year_quarter), v: num(r.push_count) }));
+    const breaks = (dq.source_breaks || []).map((b) => ({ date: parseYM(b.month), kind: "brk", note: b.note }));
+    const srcFlags = [...msList.filter((m) => gha.length && m.date >= gha[0].date).map((m) => ({ ...m, kind: "ms", n: msShown.find((s) => +s.date === +m.date)?.n ?? "·" })), ...breaks].sort((a, b) => a.date - b.date);
+    const ratio = (k) => { const a = gha.find((r) => r.key === k), b = igByKey.get(k); return a && ok(a.v) && b ? a.v / b.pushes : null; };
+    const ratioIn = (from, to) => d3.mean(gha.filter((r) => r.key >= from && r.key <= to).map((r) => ratio(r.key)).filter(ok));
+    const lastGha = [...gha].reverse().find((r) => ok(r.v));
+    const srcItems = [
+      `2020 to Q3 2023: the two move together, with GH Archive about ${d3.format(".2f")(ratioIn("2020Q1", "2023Q3"))}× the Innovation Graph. The extra is mostly bots.`,
+      `Q4 2023 to Q1 2025: GH Archive jumps to about ${d3.format(".2f")(ratioIn("2023Q4", "2025Q1"))}× while the bot-free count runs below trend. This was the "rise above trend" the earlier version reported: automated activity, not developers.`,
+      lastGha ? `From mid-2025: GH Archive falls to ${d3.format(".2f")(ratio(lastGha.key))}× by ${qLabel(lastGha.key)}, just as the bot-free count takes off. GH Archive's own collection dropped (marked "!"), so it can't measure the period that matters most.` : null,
+    ].filter(Boolean);
+    const sl = document.getElementById("sources-list");
+    for (const s of srcItems) sl.append(el("li", null, s));
+    renderTable(document.getElementById("sources-table"), [
+      { label: "Quarter", fmt: (r) => r.key }, { label: "GH Archive pushes", fmt: (r) => ok(r.v) ? fmtInt(r.v) : "excluded" },
+      { label: "Innovation Graph pushes", fmt: (r) => igByKey.has(r.key) ? fmtInt(igByKey.get(r.key).pushes) : "n/a" },
+      { label: "Ratio", fmt: (r) => ok(ratio(r.key)) ? d3.format(".2f")(ratio(r.key)) + "×" : "n/a" },
+    ], gha);
+    const notesByQ = new Map();
+    for (const g of dq.gap_months || []) notesByQ.set(qOfDate(parseYM(g.month)), "Excluded (GH Archive collection gap): " + g.note);
+
+    function renderAll() {
+      lineChart(document.getElementById("pushes-chart"), {
         series: [
-          { id: "y", label: "Actual YoY", color: "var(--s1)", values: yoyRows.map((d) => ({ date: d.date, v: d.yoy })) },
-          { id: "t", label: "Pre-2022 trend", color: "var(--ref)", dashed: true, values: yoyRows.map((d) => ({ date: d.date, v: d.trendYoy })) },
+          { label: "Pushes", color: "var(--s1)", area: true, values: q.map((d) => ({ date: d.date, v: d.pushes })) },
+          { label: "Pre-ChatGPT trend", color: "var(--ref)", dashed: true, values: q.map((d) => ({ date: d.date, v: d.trend })) },
         ],
-        yTick: d3.format(".0%"), yVal: fmtSignedPct,
-        extra: (t, d, i) => { const r = yoyRows[i]; if (!r.gap) t.append(el("div", "tt-note", fmtInt(r.pushes) + " actual vs " + fmtInt(Math.round(r.trend)) + " trend pushes")); },
-        table: [{ label: "Pushes", fmt: (d) => fmtN(d.pushes) }, { label: "Trend pushes", fmt: (d) => fmtInt(Math.round(d.trend)) }, { label: "Actual YoY", fmt: (d) => d.yoy != null ? fmtSignedPct(d.yoy) : "n/a" }, { label: "Trend YoY", fmt: (d) => d.trendYoy != null ? fmtSignedPct(d.trendYoy) : "n/a" }],
-      },
-    };
-    let view = "absolute";
-    function readStore(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-    function writeStore(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* storage unavailable */ } }
-    if (VIEWS[readStore("ai-impact-view")]) view = readStore("ai-impact-view");
-
-    const volChart = document.getElementById("volume-chart");
-    function renderVolume() {
-      const v = VIEWS[view];
-      document.querySelectorAll("#view-toggle button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.view === view)));
-      document.getElementById("view-caption").textContent = v.caption;
-      lineChart(volChart, {
-        series: v.series, yTick: v.yTick, yVal: v.yVal, includeZero: v.includeZero, milestones, breaks, notes: dqNotes, height: 340,
-        extraTip: v.extra, ariaLabel: "Monthly push volume, " + v.series[0].label,
+        yTick: fmtSI, yVal: (v) => fmtInt(Math.round(v)), height: 340, flags: msShown, band,
+        extraTip: (t, i) => t.append(el("div", "tt-note", fmtSignedPct(q[i].gap) + " vs trend" + (ok(q[i].yoy) ? " · YoY " + fmtSignedPct(q[i].yoy) : ""))),
+        ariaLabel: "Quarterly git pushes and pre-ChatGPT trend",
       });
-      renderLegend(document.getElementById("volume-legend"), v.series.length > 1
-        ? v.series.map((s) => ({ label: s.label, color: s.color, dashed: s.dashed }))
-        : []);
-      renderTable(document.getElementById("volume-table"), [{ label: "Month", fmt: (d) => d.key }, ...v.table], vol);
-    }
-    document.getElementById("view-toggle").addEventListener("click", (e) => {
-      const b = e.target.closest("button[data-view]");
-      if (!b) return;
-      view = b.dataset.view;
-      writeStore("ai-impact-view", view);
-      renderVolume();
-    });
-
-    // ----- AI / ML -----
-    const ai = aiRaw.map((r) => {
-      const key = ymKey(r.year_month), v = volByKey.get(key), c = gapNote.has(key) ? null : +r.ai_push_count;
-      return { key, date: parseYM(r.year_month), c, total: v ? v.pushes : null, share: c != null && v && v.pushes ? c / v.pushes : null };
-    }).sort((a, b) => a.date - b.date);
-    function renderAi() {
-      lineChart(document.getElementById("ai-abs-chart"), {
-        series: [{ id: "a", label: "Matched-repo pushes", color: "var(--s3)", area: true, values: ai.map((d) => ({ date: d.date, v: d.c })) }],
-        yTick: fmtSI, yVal: (v) => fmtInt(v), milestones, breaks, notes: dqNotes, height: 260, directLabels: false, ariaLabel: "Pushes to AI/ML-named repositories",
-      });
-      lineChart(document.getElementById("ai-share-chart"), {
-        series: [{ id: "s", label: "Share of pushes", color: "var(--s3)", area: true, values: ai.map((d) => ({ date: d.date, v: d.share })) }],
-        yTick: d3.format(".1%"), yVal: fmtPct2, milestones, breaks, notes: dqNotes, height: 260, directLabels: false, ariaLabel: "AI/ML-named repositories' share of all pushes",
-        extraTip: (t, d, i) => { if (ai[i].c != null) t.append(el("div", "tt-note", fmtInt(ai[i].c) + " of " + fmtN(ai[i].total) + " pushes")); },
-      });
-      renderTable(document.getElementById("ai-table"), [
-        { label: "Month", fmt: (d) => d.key }, { label: "Matched pushes", fmt: (d) => fmtN(d.c) },
-        { label: "All pushes", fmt: (d) => fmtN(d.total) }, { label: "Share", fmt: (d) => d.share != null ? fmtPct2(d.share) : "excluded" },
-      ], ai);
-    }
-
-    // ----- users -----
-    const users = actRaw.map((r) => ({ key: ymKey(r.year_month), date: parseYM(r.year_month), newc: +r.new_actor_count, cum: +r.cumulative_total }))
-      .sort((a, b) => a.date - b.date);
-    const inRange = userMs.filter((m) => m.date >= users[0].date && m.date <= users[users.length - 1].date);
-    function renderUsers() {
-      lineChart(document.getElementById("users-chart"), {
-        series: [{ id: "u", label: "Cumulative accounts seen", color: "var(--s1)", values: users.map((d) => ({ date: d.date, v: d.cum })) }],
-        yTick: fmtSI, yVal: (v) => fmtInt(v), milestones, breaks, notes: dqNotes, height: 320, ariaLabel: "Cumulative accounts seen in public events",
-        refPoints: inRange.map((m) => ({ date: m.date, v: m.users * 1e6, label: m.users + "M", detail: m.source })),
-        extraTip: (t, d, i) => t.append(el("div", "tt-note", "+" + fmtInt(users[i].newc) + " new that month")),
-      });
-      renderLegend(document.getElementById("users-legend"), [
-        { label: "Accounts first seen in public events, cumulative (derived from GH Archive)", color: "var(--s1)" },
-        { kind: "diamond", label: "GitHub's published developer count (external reference; hover for source)" },
+      renderLegend(document.getElementById("pushes-legend"), [
+        { label: "Git pushes, bots excluded", color: "var(--s1)" },
+        { label: "Trend fitted to " + qLabel(first.key) + "–" + qLabel(baseEnd), color: "var(--ref)", dashed: true },
+        { kind: "rect", label: "Baseline quarters", color: "var(--band)" },
       ]);
-      renderTable(document.getElementById("users-table"), [
-        { label: "Month", fmt: (d) => d.key }, { label: "New accounts", fmt: (d) => fmtInt(d.newc) }, { label: "Cumulative", fmt: (d) => fmtInt(d.cum) },
-      ], users);
+      barChart(document.getElementById("gap-chart"), {
+        values: q.map((d) => ({ date: d.date, v: d.gap })), yTick: d3.format("+.0%"), yVal: fmtSignedPct, height: 230, flags: msShown, band,
+        extraTip: (t, i) => t.append(el("div", "tt-note", fmtInt(q[i].pushes) + " actual vs " + fmtInt(q[i].trend) + " trend")),
+        ariaLabel: "Pushes above or below the pre-ChatGPT trend, by quarter",
+      });
+      lineChart(document.getElementById("devs-chart"), {
+        series: [{ label: "Developer accounts", color: "var(--s3)", area: true, values: q.map((d) => ({ date: d.date, v: d.devs })) }],
+        yTick: fmtSI, yVal: (v) => fmtInt(v), height: 260, directLabels: false, flags: msShown,
+        extraTip: (t, i) => { const p = q[i - 4]; if (p && ok(p.devs) && ok(q[i].devs)) t.append(el("div", "tt-note", "YoY " + fmtSignedPct(q[i].devs / p.devs - 1))); },
+        ariaLabel: "Developer accounts by quarter",
+      });
+      lineChart(document.getElementById("ppd-chart"), {
+        series: [{ label: "Pushes per account", color: "var(--s1)", values: q.map((d) => ({ date: d.date, v: d.ppd })) }],
+        yTick: d3.format(".1f"), yVal: d3.format(".2f"), height: 260, directLabels: false, includeZero: false, flags: msShown,
+        ariaLabel: "Pushes per developer account by quarter",
+      });
+      lineChart(document.getElementById("topics-chart"), {
+        series: topicSeries, yTick: fmtSI, yVal: (v) => fmtInt(v), height: 340, flags: msShown,
+        ariaLabel: "Developers pushing to repositories tagged with AI topics",
+      });
+      renderLegend(document.getElementById("topics-legend"), topicSeries.map((s) => ({ label: s.label, color: s.color })));
+      lineChart(document.getElementById("languages-chart"), {
+        series: langSeries, yTick: d3.format(".0%"), yVal: fmtPct1, height: 340, flags: msShown,
+        extraTip: (t, i) => t.append(el("div", "tt-note", "Share of developer–language pairs")),
+        ariaLabel: "Share of developers pushing to each top language",
+      });
+      renderLegend(document.getElementById("languages-legend"), langSeries.map((s) => ({ label: s.label, color: s.color })));
+      if (gha.length) {
+        lineChart(document.getElementById("sources-chart"), {
+          series: [
+            { label: "Innovation Graph", color: "var(--s1)", values: gha.map((r) => ({ date: r.date, v: igByKey.get(r.key)?.pushes ?? null })) },
+            { label: "GH Archive", color: "var(--s2)", values: gha.map((r) => ({ date: r.date, v: r.v })) },
+          ],
+          yTick: fmtSI, yVal: (v) => fmtInt(v), height: 320, flags: srcFlags,
+          extraTip: (t, i) => {
+            const k = gha[i].key, r = ratio(k);
+            if (ok(r)) t.append(el("div", "tt-note", "GH Archive is " + d3.format(".2f")(r) + "× the Innovation Graph"));
+            if (notesByQ.has(k)) t.append(el("div", "tt-note", notesByQ.get(k)));
+          },
+          ariaLabel: "Quarterly pushes from GH Archive and the Innovation Graph",
+        });
+        renderLegend(document.getElementById("sources-legend"), [
+          { label: "Innovation Graph (bots excluded, from 2020)", color: "var(--s1)" },
+          { label: "GH Archive (includes bots; quarters with collection gaps left out)", color: "var(--s2)" },
+        ]);
+      } else {
+        document.getElementById("sources").hidden = true;
+      }
     }
-
-    function renderAll() { renderVolume(); renderAi(); renderUsers(); }
     renderAll();
     let lastW = document.querySelector(".wrap").clientWidth, raf = 0;
     new ResizeObserver(() => {

@@ -1,7 +1,13 @@
 # GitHub AI Impact Report
 
 Data pipeline + dashboard exploring AI's impact on coding activity, using
-public GitHub data (GH Archive + `github_repos`) via BigQuery.
+public GitHub data.
+
+The report's main source is GitHub's own **Innovation Graph** (quarterly
+public activity from 2020, bots excluded; free CSV, no BigQuery). GH Archive
+via BigQuery is kept only for a comparison panel: it includes bots, and its
+collection has broken down since mid-2025 (see "Why the Innovation Graph"
+below).
 
 See `docs/superpowers/specs/2026-09-26-github-ai-impact-report-design.md`
 for the full design.
@@ -22,7 +28,43 @@ for the full design.
    ```
 4. Run the tests: `pytest`
 
-## Running the pipeline
+## Innovation Graph (main source)
+
+```
+python -m scripts.innovation_graph
+```
+
+Downloads the release pinned in `config/innovation_graph.yaml` into
+`data/innovation_graph/<release>/` (once; about 10 MB) and writes
+`ig_quarterly.csv`, `ig_topics.csv`, `ig_languages.csv`, `ig_meta.json`,
+the config JSON, and `gha_quarterly.csv` if `data/monthly_volume.csv`
+exists. It costs nothing and doesn't touch BigQuery.
+
+GitHub publishes a new release about a month after each quarter ends. To
+pick it up, bump `release` in `config/innovation_graph.yaml` and re-run.
+
+"Global" figures are sums over economies, leaving out the `EU` aggregate.
+GitHub withholds an economy's figure when fewer than 100 developers did the
+activity, so the totals run slightly low.
+
+## Why the Innovation Graph
+
+A cross-check in November 2026 found GH Archive can't support the
+LLM-era question:
+
+- 2020 to Q3 2023: GH Archive pushes track the Innovation Graph at about
+  1.25×, so they agree on direction.
+- Q4 2023 to Q1 2025: GH Archive rises to about 1.75× while the bot-free
+  count runs below trend. GH Archive's "above trend" rise in this period was
+  bot or automated activity.
+- From mid-2025: GH Archive falls to 0.65× as the bot-free count doubles,
+  because of GH Archive's own collection breakdown.
+
+The Innovation Graph documents no change of method, and every earlier
+quarter is identical across releases v1.0.5 (Jan 2025) to v1.0.12, so the
+2025 rise was reported as it happened rather than restated.
+
+## GH Archive pipeline (comparison only)
 
 One-time full historical backfill. **This queries BigQuery for real.** The
 queries read only the small `type`, `repo` and `actor` columns of GH Archive

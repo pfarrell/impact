@@ -2,7 +2,6 @@
 import re
 
 import pytest
-import yaml
 
 from scripts.config_loader import build_keyword_regex, load_ai_ml_keywords, load_milestones
 

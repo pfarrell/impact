@@ -1,0 +1,27 @@
+# GitHub Innovation Graph (github.com/github/innovationgraph): GitHub's own
+# quarterly counts of public activity by economy, with bots and
+# implausibly high-volume accounts excluded. This is the report's main source.
+#
+# Pin a release tag so a run is reproducible. A new release comes out about
+# a month after each quarter ends; bump this to pick it up, then run
+# `python -m scripts.innovation_graph`.
+release: "v1.0.12"
+
+# Quarters up to and including this one form the pre-ChatGPT baseline
+# (ChatGPT launched 2022-11-30, so 2022 Q4 is the last quarter mostly before
+# it had any effect). The trend is a log-linear fit over these quarters.
+baseline_end: "2022Q4"
+
+# Programming languages shown: the top N by developers pushing in the latest
+# quarter.
+top_languages: 8
+
+# Repository topics (as tagged by repo owners) tracked as the AI signal.
+ai_topics:
+  - machine-learning
+  - ai
+  - llm
+  - chatgpt
+  - ai-agents
+  - mcp
+  - claude
